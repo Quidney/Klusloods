@@ -11,6 +11,7 @@ use App\Http\Controllers\FacturenController;
 
 use App\Http\Controllers\ReserveringController;
 use Laravel\Fortify\Features;
+use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -75,6 +76,8 @@ Route::prefix('medewerker')->group(function(){
     Route::get('/retour-registreren',[EmployeeController::class, 'indexReturn']);
     Route::patch('/retour/{reservation}',[EmployeeController::class, 'updateReturn']);
 });
+
+// Route::get('/', function () { return Inertia::render('Welcome'); });
 
 // Route::get('/', function () { return Inertia::render('Welcome'); });
 
