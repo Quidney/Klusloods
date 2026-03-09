@@ -78,4 +78,6 @@ Route::prefix('medewerker')->group(function(){
 
 // Route::get('/', function () { return Inertia::render('Welcome'); });
 
+// Route::get('/', function () { return Inertia::render('Welcome'); });
+
 require __DIR__.'/settings.php';
