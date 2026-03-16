@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tool_id')->index()->constrained('tools');
             $table->string('barcode',50);
-            $table->enum('status',['onderhoud','verhuurd','afgecshreven','beschikbaar' ]);
+            $table->enum('status',['onderhoud','verhuurd','afgeschreven','beschikbaar' ]);
             $table->string('notes',255);
             $table->timestamps();
         });
