@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reservations', function (Blueprint $table) {
+        Schema::create('companies', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->index()->constrained('users');
-            $table->foreignId('barcode_id')->index()->constrained('barcodes');
-            $table->dateTime('pickuptime');
-            $table->dateTime('returntime');
-            $table->enum('status',['gereserveerd','geannuleerd']); 
+            $table->string('KvK',100);
+            $table->string('IBAN',100);
+            $table->string('address',255); //alle info inc. woonplaats etc
+            $table->string('email',30);
+            $table->string('phonenumber',10);
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('reservations');
+        Schema::dropIfExists('companies');
     }
 };

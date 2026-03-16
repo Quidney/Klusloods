@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('barcodes', function (Blueprint $table) {
+        Schema::create('openinghours', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tool_id')->index()->constrained('tools');
-            $table->string('barcode',50);
-            $table->enum('status',['onderhoud','verhuurd','afgecshreven','beschikbaar' ]);
-            $table->string('notes',255);
-            $table->timestamps();
+            $table->enum('day',['maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag','zondag']);
+            $table->time('startime');
+            $table->time('endtime');
+            $table->enum('status',['open','gesloten']);
         });
     }
 
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('barcodes');
+        Schema::dropIfExists('openinghours');
     }
 };

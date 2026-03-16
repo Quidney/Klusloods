@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('retours', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('reservation_id')->index()->constrained('reservations');
+            $table->dateTime('actualreturntime');
+            $table->enum('status',['in orde','schoonmaak nodig','schade','defect']);
+            $table->text('notes')->nullable();
+            $table->float('cost',9.2);
             $table->timestamps();
         });
     }

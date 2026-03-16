@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('prices', function (Blueprint $table) {
             $table->id();
+            $table->float('dayprice',9.2);
+            $table->float('weekprice',9.2);
+            $table->float('deposit',9.2);
             $table->timestamps();
         });
     }
