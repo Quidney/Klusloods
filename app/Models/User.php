@@ -50,8 +50,12 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+    public function reservations() :HasMany
+    {
+        return $this->hasMany(Reservation::class);
+    }
     public function invoices() :HasMany
     {
-        return $this->hasMany(invoice::class);
+        return $this->hasMany(Invoice::class);
     }
 }

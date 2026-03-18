@@ -4,7 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class retour extends Model
+class Retour extends Model
 {
-
+    public function reserveration() 
+    {
+        return $this->belongsTo(Reservation::class);
+    }
 }
