@@ -4,7 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class price extends Model
+class Price extends Model
 {
-    //
+    public function tool()
+    {
+        return $this->hasOne(Tool::class);
+    }
 }

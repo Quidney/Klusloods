@@ -4,7 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class category extends Model
+class Category extends Model
 {
-    //
+    public function tool()
+    {
+        return $this->hasOne(tool::class);
+    }
 }
