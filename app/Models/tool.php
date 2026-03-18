@@ -9,7 +9,7 @@ class Tool extends Model
 {
     public function price()
     {
-        return $this->belongsTo(Price::class);
+        return $this->hasMany(Price::class);
     }
     public function category()
     {
