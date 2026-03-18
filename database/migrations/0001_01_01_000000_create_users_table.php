@@ -13,8 +13,16 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
+            $table->string('firstname',20);
+            $table->string('lastname',20);
+            $table->string('email')->aunique(); //moest iets in appserviceprovider veranderen
+            $table->string('phonenumber',10);
+            $table->string('street',50);
+            $table->string('housenumber',5);
+            $table->string('postalcode',6);
+            $table->string('place_of_residence',30);
+            $table->enum('role',['klant','medewerker','beheerder']);
+            $table->enum('status',['actief','geblokeerd','Beëindigd']); //TODO welke statussen?
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
