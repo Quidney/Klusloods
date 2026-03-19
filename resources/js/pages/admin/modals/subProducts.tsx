@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     X,
     Save,
-    Euro,
+    Plus,
     Info,
-    Package,
+    Barcode,
     Calendar,
     ShieldCheck,
     Image,
@@ -12,30 +12,13 @@ import {
 import { useForm } from '@inertiajs/react';
 import { Transition } from '@headlessui/react';
 
-const subProducts = ({ isOpen, onClose, product, categories }) => {
+const SubProducts = ({ isOpen, onClose, product }) => {
+    const [subproducts,setSubproducts]=useState();
+    useEffect(()=>{
+        setSubproducts(product.barcode||[]);
+    },[product])
     if (!isOpen) return null;
-    const recentPrice = product.price[product.price.length - 1];
-    const {
-        data,
-        setData,
-        put,
-        processing,
-        errors,
-        reset,
-        recentlySuccessful,
-    } = useForm({
-        name: product.name,
-        description: product.description,
-        category_id: product.category_id,
-        dayprice: recentPrice.dayprice,
-        weekprice: recentPrice.weekprice,
-        deposit: recentPrice.deposit,
-        images: product.images,
-    });
 
-    function submit() {
-        put('/admin/tools?id=' + product.id);
-    }
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 text-black">
@@ -46,7 +29,7 @@ const subProducts = ({ isOpen, onClose, product, categories }) => {
             <div className="relative w-full max-w-lg transform overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all">
                 <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
                     <h2 className="text-xl font-bold text-slate-900">
-                        Categorie of product bewerken
+                        Exemplaren bewerken
                     </h2>
                     <button
                         onClick={onClose}
@@ -55,216 +38,177 @@ const subProducts = ({ isOpen, onClose, product, categories }) => {
                         <X className="h-5 w-5" />
                     </button>
                 </div>
+                <AddSubProduct tool_id={product.id} subproducts={subproducts} setSubproducts={setSubproducts}/>
+                <hr/>
+                <EdditSubProduct subproducts={subproducts}/>
 
-                <form className="max-h-[70vh] space-y-5 overflow-y-auto p-6">
-                    <div>
-                        <label className="mb-1.5 block flex flex-column flex-wrap items-center gap-2 text-sm font-bold text-slate-700">
-              <div>
-                            <Image className="h-4 w-4 text-orange-500" /> Foto
-                            {errors.images && (
-                                <span className="text-red-500">
-                                    {errors.images}
-                                </span>
-                            )}
-</div>
-              {/* TODO make preview work if file gets uploaded not the highest priority */}
-                            {product.images ? (
-                                <img
-                                    src={
-                                        window.location.origin +
-                                        '/storage/' +
-                                        product.images
-                                    }
-                                />
-                            ) : (
-                                <Package className="h-10 w-10 text-slate-300" />
-                            )}
-                        </label>
-                        <input
-                            type="file"
-                            accept="image/jpg,image/png,image/gif,image/jpeg"
-                            onChange={(e) =>
-                                setData('images', e.target.files[0])
-                            }
-                            placeholder="Bijv. Heavy Duty Graafmachine"
-                            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                        />
-                    </div>
-                    <div>
-                        <label className="mb-1.5 block flex items-center gap-2 text-sm font-bold text-slate-700">
-                            <Package className="h-4 w-4 text-orange-500" /> Naam
-                            {errors.name && (
-                                <span className="text-red-500">
-                                    {errors.name}
-                                </span>
-                            )}
-                        </label>
-                        <input
-                            type="text"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            placeholder="Bijv. Heavy Duty Graafmachine"
-                            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="mb-1.5 block flex items-center gap-2 text-sm font-bold text-slate-700">
-                            <Info className="h-4 w-4 text-orange-500" />{' '}
-                            Omschrijving
-                            {errors.description && (
-                                <span className="text-red-500">
-                                    {errors.description}
-                                </span>
-                            )}
-                        </label>
-                        <textarea
-                            rows="3"
-                            placeholder="Beschrijf de specificaties van het gereedschap..."
-                            className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-2.5 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                            onChange={(e) =>
-                                setData('description', e.target.value)
-                            }
-                            value={data.description}
-                        ></textarea>
-                    </div>
-
-                    <div>
-                        <label className="mb-1.5 block text-sm font-bold text-slate-700">
-                            Categorie
-                            {errors.category_id && (
-                                <span className="text-red-500">
-                                    {errors.category_id}
-                                </span>
-                            )}
-                        </label>
-                        <select
-                            value={data.category_id}
-                            onChange={(e) =>
-                                setData('category_id', e.target.value)
-                            }
-                            className="w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white px-4 py-2.5 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                        >
-                            {categories.map((category) => (
-                                <option value={category.id} key={category.id}>
-                                    {category.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="mb-1.5 block flex items-center gap-2 text-sm font-bold text-slate-700">
-                                <Euro className="h-4 w-4 text-orange-500" />{' '}
-                                Dagprijs
-                                {errors.dayprice && (
-                                    <span className="text-red-500">
-                                        {errors.dayprice}
-                                    </span>
-                                )}
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="number"
-                                    value={data.dayprice}
-                                    onChange={(e) =>
-                                        setData('dayprice', e.target.value)
-                                    }
-                                    className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pr-4 pl-8 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                                />
-                                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-400">
-                                    €
-                                </span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="mb-1.5 block flex items-center gap-2 text-sm font-bold text-slate-700">
-                                <Calendar className="h-4 w-4 text-orange-500" />{' '}
-                                Weekprijs
-                                {errors.weekprice && (
-                                    <span className="text-red-500">
-                                        {errors.weekprice}
-                                    </span>
-                                )}
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="number"
-                                    value={data.weekprice}
-                                    onChange={(e) =>
-                                        setData('weekprice', e.target.value)
-                                    }
-                                    className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pr-4 pl-8 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                                />
-                                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-400">
-                                    €
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="mb-1.5 block flex items-center gap-2 text-sm font-bold text-slate-700">
-                            <ShieldCheck className="h-4 w-4 text-orange-500" />{' '}
-                            Borg (als product)
-                            {errors.deposit && (
-                                <span className="text-red-500">
-                                    {errors.deposit}
-                                </span>
-                            )}
-                        </label>
-                        <div className="relative">
-                            <input
-                                type="number"
-                                placeholder="0.00"
-                                value={data.deposit}
-                                onChange={(e) =>
-                                    setData('deposit', e.target.value)
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pr-4 pl-8 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                            />
-                            <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-400">
-                                €
-                            </span>
-                        </div>
-                    </div>
-                </form>
-
-                <div className="flex justify-end gap-3 border-t border-slate-100 bg-slate-50/50 p-6">
-                    <button
-                        onClick={onClose}
-                        className="rounded-xl border border-slate-200 px-6 py-2.5 font-bold text-slate-600 transition-colors hover:bg-white"
-                    >
-                        Annuleren
-                    </button>
-                    <button
-                        type="submit"
-                        onClick={() => submit()}
-                        className="flex items-center gap-2 rounded-xl bg-orange-500 px-8 py-2.5 font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95"
-                    >
-                        {!recentlySuccessful && (
-                            <>
-                                <Save className="h-5 w-5" /> Opslaan
-                            </>
-                        )}
-                        <Transition
-                            show={recentlySuccessful}
-                            enter="transition ease-in-out"
-                            enterFrom="opacity-0"
-                            leave="transition ease-in-out"
-                            leaveTo="opacity-0"
-                        >
-                            <p className="flex gap-3">
-                                <Save className="h-5 w-5" /> Saved
-                            </p>
-                        </Transition>
-                    </button>
-                </div>
             </div>
         </div>
     );
 };
 
-export default subProducts;
+function AddSubProduct({tool_id,subproducts,setSubproducts}){
+    const {
+        data,
+        setData,
+        post,
+        processing,
+        errors,
+        reset,
+        recentlySuccessful,
+    } = useForm({
+        tool_id:tool_id,
+        barcode:""
+    });
+
+    function submit(e){
+        e.preventDefault();
+
+        post('/admin/barcodes',{
+            onSuccess:(k)=>{
+                setSubproducts(k.props.products.find(product=>product.id===tool_id).barcode);
+                reset('barcode');
+            }
+        });
+    }
+    
+    return (
+        <form className="space-y-5 p-6" onSubmit={(e)=>submit(e)}>
+            <div className='flex items-end gap-3 w-full'>
+            <div className='w-full'>
+                <label className="mb-1.5 block flex items-center gap-2 text-sm font-bold text-slate-700">
+                    <Barcode className="h-4 w-4 text-orange-500" /> Barcode
+                    {errors.barcode && (
+                        <span className="text-red-500">{errors.barcode}</span>
+                    )}
+                </label>
+                <input
+                    type="text"
+                    value={data.barcode}
+                    onChange={(e) => setData('barcode', e.target.value)}
+                    placeholder="Bijvoorbeeld: 1235589"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+                />
+            </div>
+
+            <button
+                type="submit"
+                className="flex items-center gap-2 rounded-xl bg-orange-500 px-8 py-2.5 font-bold text-white shadow-lg h-fit shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95"
+            >
+                {!recentlySuccessful && (
+                    <>
+                        <Plus className="h-5 w-5" /> 
+                    </>
+                )}
+                <Transition
+                    show={recentlySuccessful}
+                    enter="transition ease-in-out"
+                    enterFrom="opacity-0"
+                    leave="transition ease-in-out"
+                    leaveTo="opacity-0"
+                >
+                    <p className="flex gap-3">
+                        <Plus className="h-5 w-5" /> Toegevoegd
+                    </p>
+                </Transition>
+            </button>
+</div>
+        </form>
+    );
+
+}
+
+
+function EdditSubProduct({subproducts}){
+    return(
+        <div className="space-y-5 overflow-y-auto overscroll-contain max-h-[50vh] p-6">
+       {subproducts.map((subproduct)=>{
+           return (
+                    <div className='flex flex-column gap-3'>
+           <SubproductItem
+                key={subproduct.id}
+                subproduct={subproduct}
+           />
+           </div>
+           );
+       })} 
+        </div>
+    );
+}
+
+function SubproductItem({subproduct})
+{
+    const status = ['onderhoud', 'afgeschreven', 'beschikbaar', 'verhuurd'];
+    const {
+        data,
+        setData,
+        put,
+        processing,
+        errors,
+        reset,
+        recentlySuccessful,
+    } = useForm({
+        id: subproduct.id,
+        barcode: subproduct.barcode,
+        status: subproduct.status,
+    });
+
+    return (
+        <form className="flex items-end gap-4">
+            <div className="flex flex-col">
+                <label className="mb-1.5 flex items-center gap-2 text-sm font-bold text-slate-700">
+                    <Barcode className="h-4 w-4 text-orange-500" /> Barcode
+                    {errors.barcode && (
+                        <span className="text-red-500">{errors.barcode}</span>
+                    )}
+                </label>
+                <input
+                    type="text"
+                    value={data.barcode}
+                    onChange={(e) => setData('barcode', e.target.value)}
+                    placeholder="Bijvoorbeeld: 1235589"
+                    className="w-48 rounded-lg border border-slate-200 bg-white px-4 py-2.5 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+                />
+            </div>
+
+            <div className="flex flex-col">
+                <label className="mb-1.5 flex items-center gap-2 text-sm font-bold text-slate-700">
+                    Status
+                    {errors.status && (
+                        <span className="text-red-500">{errors.status}</span>
+                    )}
+                </label>
+                <select
+                    value={data.status}
+                    onChange={(e) => setData('status', e.target.value)}
+                    className="w-48 rounded-lg border border-slate-200 bg-white px-4 py-2.5 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+                >
+                    {status.map((s) => (
+                        <option key={s} disabled={s === 'verhuurd'} value={s}>
+                            {s}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <button
+                type="submit"
+                className="flex h-fit items-center gap-2 rounded-xl bg-orange-500 px-6 py-2.5 font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95"
+            >
+                {!recentlySuccessful && <Save className="h-5 w-5" />}
+                <Transition
+                    show={recentlySuccessful}
+                    enter="transition ease-in-out"
+                    enterFrom="opacity-0"
+                    leave="transition ease-in-out"
+                    leaveTo="opacity-0"
+                >
+                    <p className="flex gap-3">
+                        <Save className="h-5 w-5" /> Saved
+                    </p>
+                </Transition>
+            </button>
+        </form>
+    );
+}
+export default SubProducts;

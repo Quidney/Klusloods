@@ -46,7 +46,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
             <div className="relative w-full max-w-lg transform overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all">
                 <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
                     <h2 className="text-xl font-bold text-slate-900">
-                        Categorie of product bewerken
+                        Product bewerken
                     </h2>
                     <button
                         onClick={onClose}

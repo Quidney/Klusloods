@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barcode;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Tool;
 use App\Models\Price;
 use App\Models\Category;
+use App\Enums\BarcodeStatus;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -35,7 +37,18 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated= $request->validate([
+            'tool_id'=>"required|exists:tools,id",
+            'barcode'=>'required|unique:barcodes,barcode'
+        ]);
+
+        $barcode=new Barcode();
+        $barcode->tool_id=$validated['tool_id'];
+        $barcode->barcode=$validated['barcode'];
+        $barcode->notes='';
+        $barcode->status=BarcodeStatus::BESCHIKBAAR;
+        
+        $barcode->save();
     }
 
     /**
