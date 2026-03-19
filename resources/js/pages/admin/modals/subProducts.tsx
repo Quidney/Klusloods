@@ -26,7 +26,7 @@ const SubProducts = ({ isOpen, onClose, product }) => {
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
-            <div className="relative w-full max-w-lg transform overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all">
+            <div className="relative transform overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all">
                 <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
                     <h2 className="text-xl font-bold text-slate-900">
                         Exemplaren bewerken
@@ -40,7 +40,7 @@ const SubProducts = ({ isOpen, onClose, product }) => {
                 </div>
                 <AddSubProduct tool_id={product.id} subproducts={subproducts} setSubproducts={setSubproducts}/>
                 <hr/>
-                <EdditSubProduct subproducts={subproducts}/>
+                <EdditSubProduct subproducts={subproducts} setSubproducts={setSubproducts}/>
 
             </div>
         </div>
@@ -119,7 +119,7 @@ function AddSubProduct({tool_id,subproducts,setSubproducts}){
 }
 
 
-function EdditSubProduct({subproducts}){
+function EdditSubProduct({subproducts,setSubproducts}){
     return(
         <div className="space-y-5 overflow-y-auto overscroll-contain max-h-[50vh] p-6">
        {subproducts.map((subproduct)=>{
@@ -128,6 +128,7 @@ function EdditSubProduct({subproducts}){
            <SubproductItem
                 key={subproduct.id}
                 subproduct={subproduct}
+                setSubproducts={setSubproducts}
            />
            </div>
            );
@@ -136,7 +137,7 @@ function EdditSubProduct({subproducts}){
     );
 }
 
-function SubproductItem({subproduct})
+function SubproductItem({subproduct,setSubproducts})
 {
     const status = ['onderhoud', 'afgeschreven', 'beschikbaar', 'verhuurd'];
     const {
@@ -152,9 +153,23 @@ function SubproductItem({subproduct})
         barcode: subproduct.barcode,
         status: subproduct.status,
     });
+    
+    function submit(e)
+    {
+        e.preventDefault();
+        if(data.status==='afgeschreven')
+        {
+            if(!confirm('Ben je zeker om dit product af te schrijven. Dit kan niet ongedaan worden gemaakt'))return;
+        }
+        put('/admin/barcodes',{
+            onSuccess:(k)=>{
+                setSubproducts(k.props.products.find(product=>product.id===subproduct.tool_id).barcode);
+            }
+        })
+    }
 
     return (
-        <form className="flex items-end gap-4">
+        <form className="flex items-end gap-4" onSubmit={(e)=>submit(e)}>
             <div className="flex flex-col">
                 <label className="mb-1.5 flex items-center gap-2 text-sm font-bold text-slate-700">
                     <Barcode className="h-4 w-4 text-orange-500" /> Barcode
@@ -180,6 +195,7 @@ function SubproductItem({subproduct})
                 </label>
                 <select
                     value={data.status}
+                    disabled={subproduct.status==='verhuurd'}
                     onChange={(e) => setData('status', e.target.value)}
                     className="w-48 rounded-lg border border-slate-200 bg-white px-4 py-2.5 transition-all outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                 >

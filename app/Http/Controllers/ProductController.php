@@ -9,8 +9,11 @@ use App\Models\Tool;
 use App\Models\Price;
 use App\Models\Category;
 use App\Enums\BarcodeStatus;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
@@ -19,7 +22,10 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products=Tool::with('price','category','barcode')->get();
+        $products=Tool::with(['price','category','barcode'=>function($query){
+            $query->where('status','!=',BarcodeStatus::AFGESCHREVEN);
+        }])
+        ->get();
         $categories=Category::all();
         return Inertia::render('admin/product',['products'=>$products,'categories'=>$categories]);
     }
@@ -62,9 +68,22 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request)
     {
-        //
+        $validated=$request->validate([
+            'id'=>'required|exists:barcodes,id',
+            'status'=>[new Enum(BarcodeStatus::class),'required'],
+            'barcode'=>['required',Rule::unique(Barcode::class)->ignore($request->id,'id')]
+        ]);
+
+       $barcode = Barcode::find($validated['id']);
+        if($barcode->status!==BarcodeStatus::VERHUURD&&$validated['status']===BarcodeStatus::VERHUURD->value)
+            throw ValidationException::withMessages(['status'=>'The status can\'t be set or be moved out of rental']);
+        $barcode->barcode=$validated['barcode'];
+        $barcode->status=$validated['status'];
+        $barcode->save();
+        
+        
     }
 
     /**
