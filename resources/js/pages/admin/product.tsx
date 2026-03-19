@@ -3,7 +3,7 @@ import {
     Search,
     Plus,
     Edit,
-    Eye,
+    Cog,
     Filter,
     ChevronDown,
     Wrench,
@@ -16,23 +16,40 @@ import {
     DollarSign,
 } from 'lucide-react';
 import EditProductModal from './modals/editProduct';
+import AddProductModal from './modals/addProduct';
 import formatCurrency from '@/hooks/formatCurrency';
 import SubProducts from './modals/subProducts';
 
 const Product = ({ products, categories }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showProduct, setShowProduct] = useState(false);
+    const [showAddProduct, setshowAddProduct] = useState(false);
     const [modalProduct, setModalProduct] = useState({});
     const [showSubProduct, setShowSubProduct] = useState(false);
 
+    /**
+     * Show the productmodal
+     * @param item the product to edit
+     */
     function showProductModal(item) {
         setShowProduct(true);
         setModalProduct(item);
     }
 
+    /**
+     * This is to show the modal to edit the examplars
+     * @param item The product to edit
+     */
     function showSubProductModal(item) {
         setShowSubProduct(true);
         setModalProduct(item);
+    }
+
+    /**
+     * Show the addproduct modal
+     */
+    function showAddProductModal() {
+        setshowAddProduct(true);
     }
 
     return (
@@ -47,6 +64,11 @@ const Product = ({ products, categories }) => {
                 onClose={() => setShowSubProduct(false)}
                 isOpen={showSubProduct}
                 product={modalProduct}
+            />
+            <AddProductModal
+                onClose={() => setshowAddProduct(false)}
+                isOpen={showAddProduct}
+                categories={categories}
             />
             <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
                 {/* 1. NAVIGATION (Reused from your snippet) */}
@@ -139,8 +161,8 @@ const Product = ({ products, categories }) => {
                                         }
                                     />
                                 </div>
-                                <button className="rounded-xl bg-orange-500 p-4 text-white shadow-lg shadow-orange-500/20 transition-transform hover:scale-105 hover:bg-orange-600 active:scale-95">
-                                    <Plus className="h-6 w-6" />
+                                <button onClick={()=>showAddProductModal()} className="rounded-xl bg-orange-500 p-4 text-white shadow-lg shadow-orange-500/20 transition-transform hover:scale-105 hover:bg-orange-600 active:scale-95">
+                                    <Plus className="h-6 w-6"  />
                                 </button>
                             </div>
 
@@ -155,7 +177,7 @@ const Product = ({ products, categories }) => {
                                             key={item.id}
                                             className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition-shadow hover:shadow-md"
                                         >
-                                            <div className="relative flex h-32 items-center justify-center border-b border-slate-100 bg-slate-100">
+                                            <div className="relative flex h-32 overflow-hidden items-center justify-center border-b border-slate-100 bg-slate-100">
                                                 {item.images ? (
                                                     <img
                                                         src={
@@ -213,7 +235,7 @@ const Product = ({ products, categories }) => {
                                                                     )
                                                                 }
                                                             >
-                                                                Exemplaren
+                                                                <Cog className='h-5 w-5'/>
                                                             </button>
 
                                                             {/* Badge */}

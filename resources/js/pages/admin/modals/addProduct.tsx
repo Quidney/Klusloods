@@ -12,30 +12,32 @@ import {
 import { useForm } from '@inertiajs/react';
 import { Transition } from '@headlessui/react';
 
-const EditProductModal = ({ isOpen, onClose, product, categories }) => {
+const AddProductModal = ({ isOpen, onClose, categories }) => {
     if (!isOpen) return null;
-    const recentPrice = product.price[product.price.length - 1];
     const {
         data,
         setData,
-        put,
+        post,
         processing,
         errors,
         reset,
         recentlySuccessful,
     } = useForm({
-        name: product.name,
-        description: product.description,
-        category_id: product.category_id,
-        dayprice: recentPrice.dayprice,
-        weekprice: recentPrice.weekprice,
-        deposit: recentPrice.deposit,
+        name: '',
+        description: '',
+        category_id: categories[0].id,
+        dayprice: 0.00,
+        weekprice: 0.00,
+        deposit: 0.00,
         images: null,
     });
 
     function submit() {
-        put('/admin/tools?id=' + product.id,{
+        post('/admin/tools',{
             preserveScroll:true,
+            onSuccess:()=>{
+                reset();
+            }
         });
     }
 
@@ -48,7 +50,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
             <div className="relative w-full max-w-lg transform overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all">
                 <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
                     <h2 className="text-xl font-bold text-slate-900">
-                        Product bewerken
+                        Product toevoegen
                     </h2>
                     <button
                         onClick={onClose}
@@ -60,7 +62,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
 
                 <form className="max-h-[70vh] space-y-5 overflow-y-auto p-6">
                     <div>
-                        <label className="mb-1.5 block flex flex-col flex-wrap gap-2 text-sm font-bold text-slate-700">
+                        <label className="flex-col mb-1.5 block flex flex-wrap gap-2 text-sm font-bold text-slate-700">
                             <div className='flex gap-3'>
                                 <Image className="h-4 w-4 text-orange-500" />{' '}
                                 Foto{' '}
@@ -70,17 +72,10 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
                                     </span>
                                 )}
                             </div>
-                            {/* TODO make preview work if file gets uploaded not the highest priority */}
-                            {product.images ? (
-                                <img
-                                    src={
-                                        window.location.origin +
-                                        '/storage/' +
-                                        product.images
-                                    }
-                                />
+                            {data.images ? (
+                                <img src={URL.createObjectURL(data.images)} />
                             ) : (
-                                <Package className="h-10 w-10 text-slate-300" />
+                            <></>
                             )}
                         </label>
                         <input
@@ -95,7 +90,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
                     </div>
                     <div>
                         <label className="mb-1.5 block flex items-center gap-2 text-sm font-bold text-slate-700">
-                            <Package className="h-4 w-4 text-orange-500" /> Naam
+                                <Package className="h-4 w-4 text-orange-500" /> Naam{" "}
                             {errors.name && (
                                 <span className="text-red-500">
                                     {errors.name}
@@ -114,7 +109,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
                     <div>
                         <label className="mb-1.5 block flex items-center gap-2 text-sm font-bold text-slate-700">
                             <Info className="h-4 w-4 text-orange-500" />{' '}
-                            Omschrijving
+                            Omschrijving {" "}
                             {errors.description && (
                                 <span className="text-red-500">
                                     {errors.description}
@@ -134,7 +129,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
 
                     <div>
                         <label className="mb-1.5 block text-sm font-bold text-slate-700">
-                            Categorie
+                            Categorie{" "}
                             {errors.category_id && (
                                 <span className="text-red-500">
                                     {errors.category_id}
@@ -211,7 +206,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
                     <div>
                         <label className="mb-1.5 block flex items-center gap-2 text-sm font-bold text-slate-700">
                             <ShieldCheck className="h-4 w-4 text-orange-500" />{' '}
-                            Borg
+                            Borg 
                             {errors.deposit && (
                                 <span className="text-red-500">
                                     {errors.deposit}
@@ -270,4 +265,4 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
     );
 };
 
-export default EditProductModal;
+export default AddProductModal;

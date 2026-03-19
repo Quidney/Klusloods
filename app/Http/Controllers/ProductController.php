@@ -33,9 +33,37 @@ class ProductController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'name' => 'required|max:50',
+            'description' => 'required|max:255',
+            'images' => 'nullable|file|mimes:jpg,png,gif,jpeg|max:4096',
+            'deposit' => "numeric|required",
+            'weekprice' => "numeric|required",
+            'dayprice' => "numeric|required",
+        ]);
+
+        $tool = new Tool();
+        $tool->name = $validated['name'];
+        if (isset($validated['images'])) {
+
+            $tool->images = $this->handleFile($validated['images'], '', $validated['name']);
+        }
+        $tool->category_id = $validated['category_id'];
+        $tool->description = $validated['description'];
+
+        $tool->save();
+
+        $price = new Price();
+
+        $price->tool_id = $tool->getKey();
+        $price->dayprice = $validated['dayprice'];
+        $price->weekprice = $validated['weekprice'];
+        $price->deposit = $validated['deposit'];
+        
+        $price->save();
     }
 
     /**
@@ -55,6 +83,17 @@ class ProductController extends Controller
         $barcode->status=BarcodeStatus::BESCHIKBAAR;
         
         $barcode->save();
+    }
+    
+    private function handleFile($file,$oldimage='',$startfilename='')
+    {
+
+        if (file_exists($oldimage)) {
+            Storage::disk('public')->delete($oldimage);
+        }
+        $filename = $startfilename . Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $path = Storage::disk('public')->putFileAs('product_images', $file, $filename);
+        return  '/' . $path;
     }
 
     /**
@@ -106,13 +145,7 @@ class ProductController extends Controller
         $product->name=$validated['name'];
         $product->description=$validated['description'];
         if(isset($validated['images'])) {
-            if(file_exists($product->images))
-                {
-                    Storage::disk('public')->delete($product->images);
-                }
-            $filename = $validated['name'] . Str::uuid() . '.' . $validated['images']->getClientOriginalExtension();
-            $path=Storage::disk('public')->putFileAs('product_images', $validated['images'], $filename);
-            $product->images = '/'.$path;
+            $product->images=$this->handleFile($validated['images'],$product->images,$validated['name']);
         }
         $product->category_id=$validated['category_id'];
         $product->save();

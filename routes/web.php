@@ -12,6 +12,7 @@ Route::inertia('/', 'welcome', [
 Route::prefix('admin')->group(function(){
     Route::get('/tools',[ProductController::class,'index'])->name('tools.index');
     Route::put('/tools',[ProductController::class,'update'])->name('tools.update');
+    Route::post('/tools',[ProductController::class,'create'])->name('tools.create');
     Route::post('/barcodes',[ProductController::class,'store'])->name('tools.barcode.add');
     Route::put('/barcodes',[ProductController::class,'edit'])->name('tools.barcode.update');
 
