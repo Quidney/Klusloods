@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
+import { useForm} from '@inertiajs/react';
 import {
     Search,
     Plus,
@@ -8,7 +9,7 @@ import {
     ChevronDown,
     Wrench,
     Menu,
-    MapPin,
+    ListFilter,
     User,
     ShoppingCart,
     Package,
@@ -99,52 +100,7 @@ const Product = ({ products, categories }) => {
 
                 <div className="mx-auto max-w-7xl px-4 py-8">
                     <div className="flex flex-col gap-8 lg:flex-row">
-                        {/* 2. SIDEBAR (categ/prijs filters) */}
-                        <aside className="w-full space-y-6 lg:w-64">
-                            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                                <h3 className="mb-4 flex items-center gap-2 font-bold text-slate-900">
-                                    <Filter className="h-4 w-4 text-orange-500" />{' '}
-                                    Filters
-                                </h3>
-
-                                {/* Category Filter */}
-                                <div className="mb-6">
-                                    <label className="mb-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                                        Category
-                                    </label>
-                                    <div className="space-y-2">
-                                        {categories.map((cat) => (
-                                            <button
-                                                key={cat.id}
-                                                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-orange-600"
-                                            >
-                                                {cat.name}{' '}
-                                                <ChevronDown className="h-3 w-3 opacity-50" />
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Price Filter */}
-                                <div>
-                                    <label className="mb-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                                        Price Range
-                                    </label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Min"
-                                            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Max"
-                                            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </aside>
+                        <FilterContent categories={categories}/>
 
                         {/* 3. MAIN CONTENT AREA */}
                         <main className="flex-1">
@@ -169,7 +125,7 @@ const Product = ({ products, categories }) => {
                             {/* Product Grid */}
                             <div className="mb-6">
                                 <h2 className="mb-4 text-lg font-bold text-slate-800">
-                                    Gefilterde producten en categorieën
+                                    Producten
                                 </h2>
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
                                     {products.map((item) => (
@@ -466,5 +422,128 @@ const Product = ({ products, categories }) => {
         </>
     );
 };
+
+function FilterContent({categories}){
+    const [urlParams, setUrlParams] = useState({
+        categorie:[],
+        dayprice_min:0,
+        dayprice_max:0,
+        page_size:12,
+        page_number:1
+    });
+
+    useEffect(() => {
+        // Create a URLSearchParams object
+        const params = new URLSearchParams(window.location.search);
+
+        // Convert URL parameters to an object
+        const paramsObject = {};
+        for (const [key, value] of params.entries()) {
+            paramsObject[key] = value;
+        }
+        try{
+        paramsObject['categorie']=JSON.parse(paramsObject['categorie']);
+        }catch(e){}
+
+        // Update state with parameters
+        setUrlParams(prev=>({...prev,...paramsObject}));
+    }, []);
+
+    function setData(key,value) {
+        setUrlParams(prev=>({...prev,[key]:value}));
+    }
+    
+    /**
+     * This is to update the categories in the data object
+     * @param e the data
+     */
+    function categoryCheck(e)
+    {
+        if (urlParams.categorie.includes(e.target.value)) {
+            setData(
+                'categorie',
+                urlParams.categorie.filter((j) => j !== e.target.value),
+            );
+        } else setData('categorie', [...urlParams.categorie, e.target.value]);
+    }
+
+    function filter() {
+        window.location=window.location.origin+window.location.pathname+"?"+new URLSearchParams(({...urlParams,categorie:JSON.stringify(urlParams.categorie)}));
+    }
+    
+    return (
+        <aside className="w-full space-y-6 lg:w-64">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="mb-4 flex items-center gap-2 font-bold text-slate-900">
+                    <Filter className="h-4 w-4 text-orange-500" /> Filters
+                </h3>
+
+                {/* Category Filter */}
+                <div className="mb-6">
+                    <label className="mb-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
+                        Category
+                    </label>
+                    <div className="space-y-2">
+                        {categories.map((cat) => (
+                            <button
+                                key={cat.id}
+                                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-orange-600"
+                            >
+                                <label htmlFor={cat.id}>{cat.name} </label>
+                                <input
+                                    type="checkbox"
+                                    id={cat.id}
+                                    value={cat.id}
+                                    onChange={(e) => categoryCheck(e)}
+                                    checked={urlParams.categorie.includes(cat.id.toString())}
+                                />
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Price Filter */}
+                <div>
+                    <label className="mb-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
+                        Price Range
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <input
+                            type="number"
+                            placeholder="0"
+                            min="0"
+                            step="0.01"
+                            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
+                            value={urlParams.dayprice_min||0}
+                            onInput={(e) =>
+                                setData('dayprice_min', parseFloat(e.target.value))
+                            }
+                        />
+                        <input
+                            type="number"
+                            placeholder="0"
+                            step="0.01"
+                            min="0"
+                            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
+                            value={urlParams.dayprice_max||0}
+                            onInput={(e) =>
+                                setData('dayprice_max', parseFloat(e.target.value))
+                            }
+                        />
+                    </div>
+                </div>
+                <div className="mt-3">
+                    <button
+                        onClick={() => filter()}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 p-2 text-white shadow-lg shadow-orange-500/20 transition-transform hover:scale-105 hover:bg-orange-600 active:scale-95"
+                    >
+                        <ListFilter className="h-5 w-5" />
+                        Filter
+                    </button>
+                </div>
+            </div>
+        </aside>
+    );
+}
 
 export default Product;

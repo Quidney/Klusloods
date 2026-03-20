@@ -20,14 +20,32 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products=Tool::with(['price','category','barcode'=>function($query){
-            $query->where('status','!=',BarcodeStatus::AFGESCHREVEN);
+
+        if ($request->page_number)
+            $page_number = (int)$request->page_number;
+        else
+            $page_number = 1;
+
+        if ($request->page_size)
+            $page_size = (int)$request->page_size;
+        else
+            $page_size = 10;
+
+        $products = Tool::with(['price', 'category', 'barcode' => function ($query) {
+            $query->where('status', '!=', BarcodeStatus::AFGESCHREVEN);
         }])
+        ->when(isset($validated['categorie']),function($query) use($request){
+            return $query->whereHas('category',function($q) use($request){
+                return $q->whereIn('id',$request->categorie);
+            });
+        })
+        ->limit($page_size)
+        ->offset(($page_number*$page_size)-$page_size)
         ->get();
-        $categories=Category::all();
-        return Inertia::render('admin/product',['products'=>$products,'categories'=>$categories]);
+        $categories = Category::all();
+        return Inertia::render('admin/product', ['products' => $products, 'categories' => $categories,'max_page'=>Tool::count()/$page_size]);
     }
 
     /**
