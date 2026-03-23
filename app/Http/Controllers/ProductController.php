@@ -40,9 +40,14 @@ class ProductController extends Controller
         if(isset($request->dayprice_min))
             $dayprice_min=(int)$request->dayprice_min;
         else $dayprice_min=null;
+
         if(isset($request->dayprice_max))
             $dayprice_max=(int)$request->dayprice_max;
         else $dayprice_max=null;
+        
+        if(isset($request->search))
+            $search=$request->search;
+        else $search=null;
 
         $products = Tool::with(['price', 'category', 'barcode' => function ($query) {
             $query->where('status', '!=', BarcodeStatus::AFGESCHREVEN);
@@ -58,7 +63,10 @@ class ProductController extends Controller
             return $query->whereHas('price',function($q) use($dayprice_min,$dayprice_max){
                 return $q->whereBetween('dayprice',[$dayprice_min,$dayprice_max]);
             });
-            });
+            })
+        ->when(isset($search),function($query) use($search){
+            return $query->whereLike('name',"%".$search."%");
+        });
 
         $max_page=ceil($products->count() / $page_size);
         $categories = Category::all();

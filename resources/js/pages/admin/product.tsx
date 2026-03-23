@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState,useEffect,useRef } from 'react';
 import { router } from '@inertiajs/react';
 import {
     Search,
@@ -22,7 +22,6 @@ import formatCurrency from '@/hooks/formatCurrency';
 import SubProducts from './modals/subProducts';
 
 const Product = ({ products, categories,max_page}) => {
-    const [searchTerm, setSearchTerm] = useState('');
     const [showProduct, setShowProduct] = useState(false);
     const [showAddProduct, setshowAddProduct] = useState(false);
     const [modalProduct, setModalProduct] = useState({});
@@ -32,10 +31,16 @@ const Product = ({ products, categories,max_page}) => {
         dayprice_min:0,
         dayprice_max:0,
         page_size:12,
-        page_number:1
+        page_number:1,
+        search:''
     });
+    const tortheling=  useRef();
+    const searchBar=useRef();
+
     useEffect(()=>{
-        setUrlParams(getUrlParams());
+        const params=getUrlParams();
+        setUrlParams(params);
+        if(params.search&&searchBar)searchBar.current.focus(); 
     },[])
 
     /**
@@ -56,7 +61,18 @@ const Product = ({ products, categories,max_page}) => {
         setModalProduct(item);
     }
     
-    console.log(max_page);
+    function handleSearch(value)
+    {
+        if(tortheling.current)
+        {
+            clearTimeout(tortheling.current);
+        }
+
+        tortheling.current=setTimeout(()=>{
+            changeUrl({...urlParams,page_number:1,search:value});
+        },1000)
+        setUrlParams(prev=>({...prev,search:value}));
+    }
 
     /**
      * Show the addproduct modal
@@ -126,11 +142,13 @@ const Product = ({ products, categories,max_page}) => {
                                 <div className="relative flex-1">
                                     <Search className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-slate-400" />
                                     <input
+                                        ref={searchBar}
                                         type="text"
+                                        value={urlParams.search||''}
                                         placeholder="Zoeken naar producten..."
                                         className="w-full rounded-xl border border-slate-200 bg-white py-4 pr-4 pl-12 shadow-sm transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none"
                                         onChange={(e) =>
-                                            setSearchTerm(e.target.value)
+                                            handleSearch(e.target.value)
                                         }
                                     />
                                 </div>
@@ -498,7 +516,7 @@ function getUrlParams()
         // Convert URL parameters to an object
         const paramsObject = {};
         for (const [key, value] of params.entries()) {
-        if(!isNaN(value))
+        if(!isNaN(value)&&value.toString().length>0)
             paramsObject[key] = Number(value);
         else
             paramsObject[key] = value;
@@ -562,7 +580,7 @@ function FilterContent({categories}){
 
     function filter()
     {
-        changeUrl(urlParams);
+        changeUrl({...urlParams,page_number:1});
     }
     return (
         <aside className="w-full space-y-6 lg:w-64">
