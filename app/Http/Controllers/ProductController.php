@@ -64,6 +64,7 @@ class ProductController extends Controller
                 return $q->whereBetween('dayprice',[$dayprice_min,$dayprice_max]);
             });
             })
+            // Search
         ->when(isset($search),function($query) use($search){
             return $query->whereLike('name',"%".$search."%");
         });

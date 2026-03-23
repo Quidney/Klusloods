@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     X,
     Save,
@@ -11,7 +10,14 @@ import {
 } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
 import { Transition } from '@headlessui/react';
-
+ 
+/**
+ * This is to add a product
+ * @param isOpen if the modal should be showen or not 
+ * @param onClose the function to execute when the user wants to close the modal
+ * @param categories all possible categories to choose out
+ * @returns a jsx element as model to add the new product
+ */
 const AddProductModal = ({ isOpen, onClose, categories }) => {
     if (!isOpen) return null;
     const {

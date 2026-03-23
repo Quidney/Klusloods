@@ -1,4 +1,4 @@
-import React, { useState,useEffect,useRef } from 'react';
+import { useState,useEffect,useRef } from 'react';
 import { router } from '@inertiajs/react';
 import {
     Search,
@@ -6,7 +6,6 @@ import {
     Edit,
     Cog,
     Filter,
-    ChevronDown,
     Wrench,
     Menu,
     ListFilter,
@@ -21,6 +20,13 @@ import AddProductModal from './modals/addProduct';
 import formatCurrency from '@/hooks/formatCurrency';
 import SubProducts from './modals/subProducts';
 
+/**
+ * the product edit page
+ * @param products all the products stored in db
+ * @param categories all the categories in db
+ * @param max_page the max amount of page possible to fill 
+ * @returns a jsx element to crud products including filtering and searching
+ */
 const Product = ({ products, categories,max_page}) => {
     const [showProduct, setShowProduct] = useState(false);
     const [showAddProduct, setshowAddProduct] = useState(false);
@@ -40,6 +46,7 @@ const Product = ({ products, categories,max_page}) => {
     useEffect(()=>{
         const params=getUrlParams();
         setUrlParams(params);
+        // Put focus after the search on the searchbar
         if(params.search&&searchBar)searchBar.current.focus(); 
     },[])
 
@@ -61,6 +68,10 @@ const Product = ({ products, categories,max_page}) => {
         setModalProduct(item);
     }
     
+    /**
+     * This is to handle the search input and apply a tortheling to prevent spamming
+     * @param value the searchvalue
+     */
     function handleSearch(value)
     {
         if(tortheling.current)
@@ -81,6 +92,10 @@ const Product = ({ products, categories,max_page}) => {
         setshowAddProduct(true);
     }
     
+    /**
+     * Go to other page
+     * @param pageNumber the number to go to
+     */
     function handlePage(pageNumber)
     {
         changeUrl({...urlParams,page_number:pageNumber});
@@ -105,7 +120,6 @@ const Product = ({ products, categories,max_page}) => {
                 categories={categories}
             />
             <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-                {/* 1. NAVIGATION (Reused from your snippet) */}
                 <nav className="sticky top-0 z-50 bg-slate-900 text-white">
                     <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
                         <div className="flex cursor-pointer items-center gap-2">
@@ -135,9 +149,7 @@ const Product = ({ products, categories,max_page}) => {
                     <div className="flex flex-col gap-8 lg:flex-row">
                         <FilterContent categories={categories} />
 
-                        {/* 3. MAIN CONTENT AREA */}
                         <main className="flex-1">
-                            {/* Search and Add Header */}
                             <div className="mb-8 flex gap-4">
                                 <div className="relative flex-1">
                                     <Search className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -160,7 +172,6 @@ const Product = ({ products, categories,max_page}) => {
                                 </button>
                             </div>
 
-                            {/* Product Grid */}
                             <div className="mb-6">
                                 <h2 className="mb-4 text-lg font-bold text-slate-800">
                                     Producten
@@ -217,7 +228,6 @@ const Product = ({ products, categories,max_page}) => {
                                                         </span>
                                                     </div>
 
-                                                    {/* Action Buttons (v and e) */}
                                                     <div className="flex gap-2">
                                                         <div className="relative inline-block">
                                                             <button
@@ -232,7 +242,6 @@ const Product = ({ products, categories,max_page}) => {
                                                                 <Cog className="h-5 w-5" />
                                                             </button>
 
-                                                            {/* Badge */}
                                                             <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white">
                                                                 {
                                                                     item.barcode
@@ -263,7 +272,6 @@ const Product = ({ products, categories,max_page}) => {
                 </div>
 
                 <div className="flex items-center justify-center space-x-2 py-10">
-                    {/* Previous Button */}
                     <button
                         onClick={() => handlePage(urlParams.page_number - 1)}
                         disabled={urlParams.page_number === 1}
@@ -272,7 +280,6 @@ const Product = ({ products, categories,max_page}) => {
                         <ChevronLeft size={20} />
                     </button>
 
-                    {/* Page Numbers */}
                     {[...Array(max_page)].map((_, index) => {
                         const pageNumber = index + 1;
                         const isActive = urlParams.page_number === pageNumber;
@@ -292,7 +299,6 @@ const Product = ({ products, categories,max_page}) => {
                         );
                     })}
 
-                    {/* Next Button */}
                     <button
                         onClick={() => handlePage(urlParams.page_number + 1)}
                         disabled={urlParams.page_number === max_page}
@@ -301,7 +307,6 @@ const Product = ({ products, categories,max_page}) => {
                         <ChevronRight size={20} />
                     </button>
                 </div>
-                {/* 4. FOOTER */}
                 <footer className="border-t border-slate-800 bg-slate-950 pt-16 pb-8 text-slate-300">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
@@ -323,7 +328,6 @@ const Product = ({ products, categories,max_page}) => {
                                     equipment, exactly when you need it.
                                 </p>
                                 <div className="flex space-x-4">
-                                    {/* Social placeholders */}
                                     <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-slate-800 transition-colors hover:bg-orange-500 hover:text-white">
                                         <span className="font-bold">fb</span>
                                     </div>
@@ -500,6 +504,10 @@ const Product = ({ products, categories,max_page}) => {
     );
 };
 
+/**
+ * This is to extract all the searchparams that are in the url
+ * @returns a object with all possible urlparams or there default value
+ */
 function getUrlParams()
 {
     let urlParams = {
@@ -516,13 +524,15 @@ function getUrlParams()
         // Convert URL parameters to an object
         const paramsObject = {};
         for (const [key, value] of params.entries()) {
-        if(!isNaN(value)&&value.toString().length>0)
-            paramsObject[key] = Number(value);
-        else
-            paramsObject[key] = value;
+            // check if it might be a number and not a empty value because javascipt think that null==0
+            if (!isNaN(value) && value.toString().length > 0)
+                paramsObject[key] = Number(value);
+            else paramsObject[key] = value;
         }
+    //
+        // Silence any errors that might arise when parsing categorie
         try{
-        paramsObject['categorie']=JSON.parse(paramsObject['categorie']);
+            paramsObject['categorie'] = JSON.parse(paramsObject['categorie']);
         }catch(e){}
 
         // Update state with parameters
@@ -557,6 +567,7 @@ function FilterContent({categories}){
         page_size:12,
         page_number:1
     });
+
     useEffect(()=>{
         setUrlParams(getUrlParams());
     },[])
@@ -578,10 +589,15 @@ function FilterContent({categories}){
         } else setData('categorie', [...urlParams.categorie, e.target.value]);
     }
 
+    /**
+     * Apply the filtering
+     */
     function filter()
     {
         changeUrl({...urlParams,page_number:1});
     }
+
+    // TODO add also a filter for weekprice and deposit
     return (
         <aside className="w-full space-y-6 lg:w-64">
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -589,7 +605,6 @@ function FilterContent({categories}){
                     <Filter className="h-4 w-4 text-orange-500" /> Filters
                 </h3>
 
-                {/* Category Filter */}
                 <div className="mb-6">
                     <label className="mb-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
                         Categorieën
@@ -615,7 +630,6 @@ function FilterContent({categories}){
                     </div>
                 </div>
 
-                {/* Price Filter */}
                 <div>
                     <label className="mb-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
                         Dagprijs

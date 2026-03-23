@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     X,
     Save,
@@ -70,10 +69,11 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
                                     </span>
                                 )}
                             </div>
-                            {/* TODO make preview work if file gets uploaded not the highest priority */}
                             {product.images ? (
                                 <img
                                     src={
+                                        data.images?
+                                        URL.createObjectURL(data.images):
                                         window.location.origin +
                                         '/storage/' +
                                         product.images
