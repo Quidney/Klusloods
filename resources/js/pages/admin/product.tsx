@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import { useForm} from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import {
     Search,
     Plus,
@@ -11,22 +11,32 @@ import {
     Menu,
     ListFilter,
     User,
-    ShoppingCart,
+    ChevronRight,
     Package,
     Tag,
-    DollarSign,
+    ChevronLeft,
 } from 'lucide-react';
 import EditProductModal from './modals/editProduct';
 import AddProductModal from './modals/addProduct';
 import formatCurrency from '@/hooks/formatCurrency';
 import SubProducts from './modals/subProducts';
 
-const Product = ({ products, categories }) => {
+const Product = ({ products, categories,max_page}) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showProduct, setShowProduct] = useState(false);
     const [showAddProduct, setshowAddProduct] = useState(false);
     const [modalProduct, setModalProduct] = useState({});
     const [showSubProduct, setShowSubProduct] = useState(false);
+    const [urlParams, setUrlParams] = useState({
+        categorie:[],
+        dayprice_min:0,
+        dayprice_max:0,
+        page_size:12,
+        page_number:1
+    });
+    useEffect(()=>{
+        setUrlParams(getUrlParams());
+    },[])
 
     /**
      * Show the productmodal
@@ -45,12 +55,19 @@ const Product = ({ products, categories }) => {
         setShowSubProduct(true);
         setModalProduct(item);
     }
+    
+    console.log(max_page);
 
     /**
      * Show the addproduct modal
      */
     function showAddProductModal() {
         setshowAddProduct(true);
+    }
+    
+    function handlePage(pageNumber)
+    {
+        changeUrl({...urlParams,page_number:pageNumber});
     }
 
     return (
@@ -100,7 +117,7 @@ const Product = ({ products, categories }) => {
 
                 <div className="mx-auto max-w-7xl px-4 py-8">
                     <div className="flex flex-col gap-8 lg:flex-row">
-                        <FilterContent categories={categories}/>
+                        <FilterContent categories={categories} />
 
                         {/* 3. MAIN CONTENT AREA */}
                         <main className="flex-1">
@@ -117,8 +134,11 @@ const Product = ({ products, categories }) => {
                                         }
                                     />
                                 </div>
-                                <button onClick={()=>showAddProductModal()} className="rounded-xl bg-orange-500 p-4 text-white shadow-lg shadow-orange-500/20 transition-transform hover:scale-105 hover:bg-orange-600 active:scale-95">
-                                    <Plus className="h-6 w-6"  />
+                                <button
+                                    onClick={() => showAddProductModal()}
+                                    className="rounded-xl bg-orange-500 p-4 text-white shadow-lg shadow-orange-500/20 transition-transform hover:scale-105 hover:bg-orange-600 active:scale-95"
+                                >
+                                    <Plus className="h-6 w-6" />
                                 </button>
                             </div>
 
@@ -133,7 +153,7 @@ const Product = ({ products, categories }) => {
                                             key={item.id}
                                             className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition-shadow hover:shadow-md"
                                         >
-                                            <div className="relative flex h-32 overflow-hidden items-center justify-center border-b border-slate-100 bg-slate-100">
+                                            <div className="relative flex h-32 items-center justify-center overflow-hidden border-b border-slate-100 bg-slate-100">
                                                 {item.images ? (
                                                     <img
                                                         src={
@@ -191,7 +211,7 @@ const Product = ({ products, categories }) => {
                                                                     )
                                                                 }
                                                             >
-                                                                <Cog className='h-5 w-5'/>
+                                                                <Cog className="h-5 w-5" />
                                                             </button>
 
                                                             {/* Badge */}
@@ -224,6 +244,45 @@ const Product = ({ products, categories }) => {
                     </div>
                 </div>
 
+                <div className="flex items-center justify-center space-x-2 py-10">
+                    {/* Previous Button */}
+                    <button
+                        onClick={() => handlePage(urlParams.page_number - 1)}
+                        disabled={urlParams.page_number === 1}
+                        className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:border-orange-500 hover:text-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+
+                    {/* Page Numbers */}
+                    {[...Array(max_page)].map((_, index) => {
+                        const pageNumber = index + 1;
+                        const isActive = urlParams.page_number === pageNumber;
+
+                        return (
+                            <button
+                                key={pageNumber}
+                                onClick={() => handlePage(pageNumber)}
+                                className={`h-10 w-10 rounded-lg border text-sm font-semibold transition-all duration-200 ${
+                                    isActive
+                                        ? 'border-orange-600 bg-orange-600 text-white shadow-md shadow-orange-200'
+                                        : 'border-gray-200 bg-white text-gray-700 hover:border-orange-500 hover:text-orange-500'
+                                }`}
+                            >
+                                {pageNumber}
+                            </button>
+                        );
+                    })}
+
+                    {/* Next Button */}
+                    <button
+                        onClick={() => handlePage(urlParams.page_number + 1)}
+                        disabled={urlParams.page_number === max_page}
+                        className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:border-orange-500 hover:text-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <ChevronRight size={20} />
+                    </button>
+                </div>
                 {/* 4. FOOTER */}
                 <footer className="border-t border-slate-800 bg-slate-950 pt-16 pb-8 text-slate-300">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -423,6 +482,55 @@ const Product = ({ products, categories }) => {
     );
 };
 
+function getUrlParams()
+{
+    let urlParams = {
+        categorie:[],
+        dayprice_min:0,
+        dayprice_max:0,
+        page_size:12,
+        page_number:1
+    };
+
+        // Create a URLSearchParams object
+        const params = new URLSearchParams(window.location.search);
+
+        // Convert URL parameters to an object
+        const paramsObject = {};
+        for (const [key, value] of params.entries()) {
+        if(!isNaN(value))
+            paramsObject[key] = Number(value);
+        else
+            paramsObject[key] = value;
+        }
+        try{
+        paramsObject['categorie']=JSON.parse(paramsObject['categorie']);
+        }catch(e){}
+
+        // Update state with parameters
+        urlParams={...urlParams,...paramsObject};
+    return urlParams;
+}
+
+
+/**
+ * This is to go to other page with the given urlParams
+ * @param urlParams all the urlparams needed to use in the url
+ */
+function changeUrl(urlParams) {
+    router.visit(
+        '?' +
+        new URLSearchParams({
+            ...urlParams,
+            categorie: JSON.stringify(urlParams.categorie),
+        }));
+}
+
+/**
+ * This is to create a fitler component to filter on price and category
+ * @param categories all active categories to filter on 
+ * @returns a jsx component with a option to filter the products
+ */
 function FilterContent({categories}){
     const [urlParams, setUrlParams] = useState({
         categorie:[],
@@ -431,34 +539,19 @@ function FilterContent({categories}){
         page_size:12,
         page_number:1
     });
+    useEffect(()=>{
+        setUrlParams(getUrlParams());
+    },[])
 
-    useEffect(() => {
-        // Create a URLSearchParams object
-        const params = new URLSearchParams(window.location.search);
-
-        // Convert URL parameters to an object
-        const paramsObject = {};
-        for (const [key, value] of params.entries()) {
-            paramsObject[key] = value;
-        }
-        try{
-        paramsObject['categorie']=JSON.parse(paramsObject['categorie']);
-        }catch(e){}
-
-        // Update state with parameters
-        setUrlParams(prev=>({...prev,...paramsObject}));
-    }, []);
-
-    function setData(key,value) {
-        setUrlParams(prev=>({...prev,[key]:value}));
+    function setData(key, value) {
+        setUrlParams((prev) => ({ ...prev, [key]: value }));
     }
-    
+
     /**
      * This is to update the categories in the data object
      * @param e the data
      */
-    function categoryCheck(e)
-    {
+    function categoryCheck(e) {
         if (urlParams.categorie.includes(e.target.value)) {
             setData(
                 'categorie',
@@ -467,10 +560,10 @@ function FilterContent({categories}){
         } else setData('categorie', [...urlParams.categorie, e.target.value]);
     }
 
-    function filter() {
-        window.location=window.location.origin+window.location.pathname+"?"+new URLSearchParams(({...urlParams,categorie:JSON.stringify(urlParams.categorie)}));
+    function filter()
+    {
+        changeUrl(urlParams);
     }
-    
     return (
         <aside className="w-full space-y-6 lg:w-64">
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -481,7 +574,7 @@ function FilterContent({categories}){
                 {/* Category Filter */}
                 <div className="mb-6">
                     <label className="mb-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                        Category
+                        Categorieën
                     </label>
                     <div className="space-y-2">
                         {categories.map((cat) => (
@@ -495,7 +588,9 @@ function FilterContent({categories}){
                                     id={cat.id}
                                     value={cat.id}
                                     onChange={(e) => categoryCheck(e)}
-                                    checked={urlParams.categorie.includes(cat.id.toString())}
+                                    checked={urlParams.categorie.includes(
+                                        cat.id.toString(),
+                                    )}
                                 />
                             </button>
                         ))}
@@ -505,7 +600,7 @@ function FilterContent({categories}){
                 {/* Price Filter */}
                 <div>
                     <label className="mb-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                        Price Range
+                        Dagprijs
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                         <input
@@ -514,9 +609,12 @@ function FilterContent({categories}){
                             min="0"
                             step="0.01"
                             className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
-                            value={urlParams.dayprice_min||0}
+                            value={urlParams.dayprice_min || 0}
                             onInput={(e) =>
-                                setData('dayprice_min', parseFloat(e.target.value))
+                                setData(
+                                    'dayprice_min',
+                                    parseFloat(e.target.value),
+                                )
                             }
                         />
                         <input
@@ -525,9 +623,12 @@ function FilterContent({categories}){
                             step="0.01"
                             min="0"
                             className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
-                            value={urlParams.dayprice_max||0}
+                            value={urlParams.dayprice_max || 0}
                             onInput={(e) =>
-                                setData('dayprice_max', parseFloat(e.target.value))
+                                setData(
+                                    'dayprice_max',
+                                    parseFloat(e.target.value),
+                                )
                             }
                         />
                     </div>

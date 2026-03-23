@@ -32,20 +32,44 @@ class ProductController extends Controller
             $page_size = (int)$request->page_size;
         else
             $page_size = 10;
+        
+        if(isset($request->categorie))
+            $categorie=json_decode($request->categorie);
+        else $categorie=null;
+
+        if(isset($request->dayprice_min))
+            $dayprice_min=(int)$request->dayprice_min;
+        else $dayprice_min=null;
+        if(isset($request->dayprice_max))
+            $dayprice_max=(int)$request->dayprice_max;
+        else $dayprice_max=null;
 
         $products = Tool::with(['price', 'category', 'barcode' => function ($query) {
             $query->where('status', '!=', BarcodeStatus::AFGESCHREVEN);
         }])
-        ->when(isset($validated['categorie']),function($query) use($request){
-            return $query->whereHas('category',function($q) use($request){
-                return $q->whereIn('id',$request->categorie);
+            // Category filter
+        ->when(isset($categorie)&&count($categorie)>0,function($query) use($categorie){
+            return $query->whereHas('category',function($q) use($categorie){
+                return $q->whereIn('id',$categorie);
             });
         })
-        ->limit($page_size)
-        ->offset(($page_number*$page_size)-$page_size)
-        ->get();
+        // Price filter
+        ->when((isset($dayprice_min)&&isset($dayprice_max)&&$dayprice_min!==$dayprice_max&&$dayprice_min<$dayprice_max),function($query) use($dayprice_min,$dayprice_max){
+            return $query->whereHas('price',function($q) use($dayprice_min,$dayprice_max){
+                return $q->whereBetween('dayprice',[$dayprice_min,$dayprice_max]);
+            });
+            });
+
+        $max_page=ceil($products->count() / $page_size);
         $categories = Category::all();
-        return Inertia::render('admin/product', ['products' => $products, 'categories' => $categories,'max_page'=>Tool::count()/$page_size]);
+        return Inertia::render('admin/product', [
+                'products' => $products
+                    ->limit($page_size)
+                    ->offset(($page_number - 1) * $page_size)
+                    ->get(),
+                'categories' => $categories,
+                'max_page' =>$max_page
+            ]);
     }
 
     /**
