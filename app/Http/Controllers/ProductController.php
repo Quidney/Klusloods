@@ -45,6 +45,14 @@ class ProductController extends Controller
             $dayprice_max=(int)$request->dayprice_max;
         else $dayprice_max=null;
         
+        if(isset($request->weekprice_min))
+            $weekprice_min=(int)$request->weekprice_min;
+        else $weekprice_min=null;
+
+        if(isset($request->weekprice_max))
+            $weekprice_max=(int)$request->weekprice_max;
+        else $weekprice_max=null;
+        
         if(isset($request->search))
             $search=$request->search;
         else $search=null;
@@ -58,10 +66,16 @@ class ProductController extends Controller
                 return $q->whereIn('id',$categorie);
             });
         })
-        // Price filter
+        // Dayprice filter
         ->when((isset($dayprice_min)&&isset($dayprice_max)&&$dayprice_min!==$dayprice_max&&$dayprice_min<$dayprice_max),function($query) use($dayprice_min,$dayprice_max){
             return $query->whereHas('price',function($q) use($dayprice_min,$dayprice_max){
                 return $q->whereBetween('dayprice',[$dayprice_min,$dayprice_max]);
+            });
+            })
+        // weekprice filter
+        ->when((isset($weekprice_min)&&isset($weekprice_max)&&$weekprice_min!==$weekprice_max&&$weekprice_min<$weekprice_max),function($query) use($weekprice_min,$weekprice_max){
+            return $query->whereHas('price',function($q) use($weekprice_min,$weekprice_max){
+                return $q->whereBetween('weekprice',[$weekprice_min,$weekprice_max]);
             });
             })
             // Search

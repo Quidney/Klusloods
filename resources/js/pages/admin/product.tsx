@@ -514,6 +514,8 @@ function getUrlParams()
         categorie:[],
         dayprice_min:0,
         dayprice_max:0,
+        weekprice_min:0,
+        weekprice_max:0,
         page_size:12,
         page_number:1
     };
@@ -564,6 +566,8 @@ function FilterContent({categories}){
         categorie:[],
         dayprice_min:0,
         dayprice_max:0,
+        weekprice_min:0,
+        weekprice_max:0,
         page_size:12,
         page_number:1
     });
@@ -597,7 +601,6 @@ function FilterContent({categories}){
         changeUrl({...urlParams,page_number:1});
     }
 
-    // TODO add also a filter for weekprice and deposit
     return (
         <aside className="w-full space-y-6 lg:w-64">
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -659,6 +662,41 @@ function FilterContent({categories}){
                             onInput={(e) =>
                                 setData(
                                     'dayprice_max',
+                                    parseFloat(e.target.value),
+                                )
+                            }
+                        />
+                    </div>
+                </div>
+                <div>
+                    <label className="mb-2 mt-2 block text-xs font-bold tracking-wider text-slate-400 uppercase">
+                        Weekprijs
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <input
+                            type="number"
+                            placeholder="0"
+                            min="0"
+                            step="0.01"
+                            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
+                            value={urlParams.weekprice_min || 0}
+                            onInput={(e) =>
+                                setData(
+                                    'weekprice_min',
+                                    parseFloat(e.target.value),
+                                )
+                            }
+                        />
+                        <input
+                            type="number"
+                            placeholder="0"
+                            step="0.01"
+                            min="0"
+                            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
+                            value={urlParams.weekprice_max || 0}
+                            onInput={(e) =>
+                                setData(
+                                    'weekprice_max',
                                     parseFloat(e.target.value),
                                 )
                             }
