@@ -97,8 +97,7 @@ class CategorieController extends Controller
     public function destroy(string $id)
     {
         $category = Category::with('tool')->findOrFail($id);
-
-        if(isset($category->tool))
+        if(count($category->tool)>0)
             {
                 return response('There are tools with that category so deletion isn\'t possilbe',400);
             }else $category->delete();
