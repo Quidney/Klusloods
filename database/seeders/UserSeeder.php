@@ -16,8 +16,8 @@ class UserSeeder extends Seeder
 
         User::create([
         'id' => 3,
-        'firstname' => 'test',
-        'lastname' => 'test',
+        'firstname' => 'steven',
+        'lastname' => 'stan',
         'email' => 'test@gmail.com',
         'phonenumber' => '1234567890',
         'street' => 'teststraat',
@@ -32,8 +32,8 @@ class UserSeeder extends Seeder
 
          User::create([
         'id' => 4,
-        'firstname' => 'medewerker',
-        'lastname' => 'medewerker',
+        'firstname' => 'jan',
+        'lastname' => 'pieter',
         'email' => 'medewerker@gmail.com',
         'phonenumber' => '1234567890',
         'street' => 'mede straat',
