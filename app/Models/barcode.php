@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Barcode extends Model
 {
+    
+    protected function casts(): array
+    {
+        return [
+            'status'=>\App\Enums\BarcodeStatus::class
+        ];
+    }
     public function reservation() :HasMany
     {
         return $this->hasMany(Reservation::class);

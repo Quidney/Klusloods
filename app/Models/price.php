@@ -8,6 +8,6 @@ class Price extends Model
 {
     public function tool()
     {
-        return $this->hasOne(Tool::class);
+        return $this->belongsTo(Tool::class);
     }
 }
