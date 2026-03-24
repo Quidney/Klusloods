@@ -13,10 +13,18 @@ class CategorieController extends Controller
      */
     public function index(Request $request)
     {
+        if(isset($request->page_size))
+            $page_size=(int)$request->page_size;
+        else
+            $page_size=9;
+        if(isset($request->page_number))
+            $page_number=(int)$request->page_number;
+        else
+            $page_number=1;
         if(isset($request->search))
-            $category=Category::whereLike('name',"%".$request->search."%")->get();
-        else $category=Category::all();
-        return Inertia::render('admin/category',['categories'=>$category]);
+            $category=Category::whereLike('name',"%".$request->search."%")->limit($page_size)->offset(($page_number-1)*$page_size)->get();
+        else $category=Category::limit($page_size)->offset(($page_number-1)*$page_size)->get();
+        return Inertia::render('admin/category',['categories'=>$category,'max_page'=>ceil(Category::count()/$page_size)]);
     }
 
     /**

@@ -8,6 +8,6 @@ class Category extends Model
 {
     public function tool()
     {
-        return $this->hasOne(tool::class);
+        return $this->hasMany(tool::class);
     }
 }
