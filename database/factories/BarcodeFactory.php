@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Tool;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,10 @@ class BarcodeFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'tool_id' => Tool::factory(),
+            'barcode' => fake()->unique()->ean13(),
+            'status' => fake()->randomElement(['onderhoud','verhuurd','afgeschreven','beschikbaar']),
+            'notes' => fake()->sentence(6),
         ];
     }
 }

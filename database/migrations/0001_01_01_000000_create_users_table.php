@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('postalcode',6);
             $table->string('place_of_residence',30);
             $table->enum('role',['klant','medewerker','beheerder']);
-            $table->enum('status',['actief','geblokeerd','Beëindigd']);
+            $table->enum('status',['actief','geblokeerd','beëindigd']);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

@@ -17,7 +17,11 @@ class CompanyFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'KvK' => fake()->unique()->numerify('###########'),
+            'IBAN' => fake()->iban(),                          
+            'address' => fake()->address(),                    
+            'email' => fake()->unique()->safeEmail(),        
+            'phonenumber' => fake()->numerify('##########'),  
         ];
     }
 }

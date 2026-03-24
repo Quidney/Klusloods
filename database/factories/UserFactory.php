@@ -31,7 +31,7 @@ class UserFactory extends Factory
             'phonenumber' => fake()->numerify('##########'),
             'street' => fake()->streetName(),
             'housenumber' => fake()->numerify('###'),
-            'postalcode' => fake()->postcode(),
+            'postalcode' => substr(fake()->postcode(), 0, 6),
             'place_of_residence' => fake()->city(),
             'role' => fake()->randomElement(['klant','medewerker','beheerder']),
             'status' => fake()->randomElement(['actief','geblokeerd','Beëindigd']),
