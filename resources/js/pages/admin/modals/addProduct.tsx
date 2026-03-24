@@ -79,7 +79,7 @@ const AddProductModal = ({ isOpen, onClose, categories }) => {
                                 )}
                             </div>
                             {data.images ? (
-                                <img src={URL.createObjectURL(data.images)} />
+                                <img src={URL.createObjectURL(data.images)} className='object-contain'/>
                             ) : (
                             <></>
                             )}

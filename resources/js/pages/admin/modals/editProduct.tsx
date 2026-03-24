@@ -69,8 +69,9 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
                                     </span>
                                 )}
                             </div>
-                            {product.images ? (
+                            {product.images||data.images ? (
                                 <img
+                                    className='object-contain'
                                     src={
                                         data.images?
                                         URL.createObjectURL(data.images):

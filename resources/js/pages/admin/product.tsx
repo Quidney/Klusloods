@@ -14,6 +14,7 @@ import {
     Package,
     Tag,
     ChevronLeft,
+    Trash2,
 } from 'lucide-react';
 import EditProductModal from './modals/editProduct';
 import AddProductModal from './modals/addProduct';
@@ -101,6 +102,25 @@ const Product = ({ products, categories,max_page}) => {
         changeUrl({...urlParams,page_number:pageNumber});
     }
 
+    
+    async function deleteItem(id)
+    {
+        if(!confirm('Ben je zeker om de tool te proberen te verwijderen?'))return;
+
+        const req=await fetch(window.location.origin+'/admin/tools/'+id,{
+            method:'delete',
+            headers:{
+                'X-CSRF-TOKEN':window.csrfToken
+            }
+        });
+
+        const res=await req.text();
+        if(req.status===200)
+        {
+            router.reload();
+        }
+        alert(res);
+    }
     return (
         <>
             <EditProductModal
@@ -229,6 +249,15 @@ const Product = ({ products, categories,max_page}) => {
                                                     </div>
 
                                                     <div className="flex gap-2">
+                                                        <button
+                                                            className="rounded-lg border border-slate-200 p-2.5 text-slate-600 transition-colors hover:bg-slate-50"
+                                                            title="Delete"
+                                                            onClick={() =>
+                                                                deleteItem(item.id)
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-5 w-5" />
+                                                        </button>
                                                         <div className="relative inline-block">
                                                             <button
                                                                 className="rounded-lg border border-slate-200 p-2.5 text-slate-600 transition-colors hover:bg-slate-50"

@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\Tool;
 use App\Models\Price;
 use App\Models\Category;
+use App\Models\Reservation;
 use App\Enums\BarcodeStatus;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
@@ -183,6 +184,9 @@ class ProductController extends Controller
        $barcode = Barcode::find($validated['id']);
         if($barcode->status!==BarcodeStatus::VERHUURD&&$validated['status']===BarcodeStatus::VERHUURD->value)
             throw ValidationException::withMessages(['status'=>'The status can\'t be set or be moved out of rental']);
+        $reservations=Reservation::where('barcode_id',$validated['id'])->where('pickuptime','>=',\Carbon\Carbon::now())->count();
+        if($reservations>0)
+            throw ValidationException::withMessages(['status'=>'There are reservations in the future so this exemplar can\'t be written off']);
         $barcode->barcode=$validated['barcode'];
         $barcode->status=$validated['status'];
         $barcode->save();
@@ -238,8 +242,17 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+       $tool=Tool::findOrFail($id);
+       
+       $reservations=Reservation::whereIn('barcode_id',Barcode::where('tool_id',$tool->id)->get('id'))->count();
+       $rentedEx=Barcode::where('tool_id',$tool->id)->where('status',BarcodeStatus::VERHUURD)->count();
+       if($reservations>0||$rentedEx>0)return response('There are open reservations with some exemplars',400);
+       
+       Price::where('tool_id',$tool->id)->delete();
+       $tool->delete();
+
+       return response('The tool has successfully been removed');
     }
 }
