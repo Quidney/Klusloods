@@ -16,19 +16,19 @@ class CategorySeeder extends Seeder
 
         Category::create([
         'id' => 1,
-        'name' => 'categorie hamer',
+        'name' => 'hamer',
         'description' => null,
         ]);
 
         Category::create([
         'id' => 2,
-        'name' => 'categorie schroevendraaier',
+        'name' => 'schroevendraaier',
         'description' => null,
         ]);
 
         Category::create([
         'id' => 3,
-        'name' => 'categorie boormachine',
+        'name' => 'boormachine',
         'description' => null,
         ]);
     }

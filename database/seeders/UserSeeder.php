@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
         // User::factory()->count(6)->create();
 
         User::create([
-        'id' => 3,
+        'id' => 1,
         'firstname' => 'steven',
         'lastname' => 'stan',
         'email' => 'stevenstangmail.com',
@@ -31,7 +31,7 @@ class UserSeeder extends Seeder
 
 
          User::create([
-        'id' => 4,
+        'id' => 2,
         'firstname' => 'jan',
         'lastname' => 'pieter',
         'email' => 'janpieter@gmail.com',
@@ -46,7 +46,7 @@ class UserSeeder extends Seeder
         ]);
 
          User::create([
-        'id' => 5,
+        'id' => 3,
         'firstname' => 'admin',
         'lastname' => 'admin',
         'email' => 'admin@gmail.com',
