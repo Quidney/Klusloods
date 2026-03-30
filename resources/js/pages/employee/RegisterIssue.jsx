@@ -40,11 +40,6 @@ export default function RegisterIssue({ reservations }) {
       return;
     }
 
-    if (selectedReservation.status === "uitgegeven") {
-      setMessage("Deze reservering is al uitgegeven.");
-      return;
-    }
-
     if (!selectedItem) {
       toast.warning("Selecteer een beschikbaar exemplaar.");
       return;
