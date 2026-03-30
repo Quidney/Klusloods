@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Reservation;
+use App\Models\Barcode;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,7 +14,11 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        return Inertia::render('employee/RegisterIssue');
+        $reservations = Reservation::with(['user', 'barcode.tool'])->get();
+
+        return Inertia::render('employee/RegisterIssue', [
+            'reservations' => $reservations
+        ]);
     }
 
     /**
@@ -50,9 +56,31 @@ class EmployeeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Reservation $reservation)
     {
-        //
+        if ($reservation->status === 'geannuleerd') {
+            return response()->json(['message' => 'Reservering geannuleerd'], 400);
+        }
+
+        $reservation->update([
+            'barcode_id' => $request->barcode_id,
+
+            'status' => 'uitgegeven',
+        ]);
+
+
+        $barcode = Barcode::find($request->barcode_id);
+        if ($barcode) {
+            $barcode->status = 'verhuurd';
+            $barcode->notes = trim(
+                ($request->condition ?? '') .
+                    ($request->condition && $request->accessories ? ' | ' : '') .
+                    ($request->accessories ?? '')
+            );
+            $barcode->save();
+        }
+
+        return response()->json(['message' => 'Succesvol uitgegeven', 'reservation' => $reservation]);
     }
 
     /**
