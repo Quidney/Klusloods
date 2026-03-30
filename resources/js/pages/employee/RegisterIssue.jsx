@@ -1,30 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, CheckCircle, AlertTriangle } from "lucide-react";
+import axios from "axios";
 
-const mockReservations = [
-  {
-    id: "RES-001",
-    customer: "Jan Jansen",
-    status: "Gereserveerd",
-    items: ["Boormachine"],
-  },
-  {
-    id: "RES-002",
-    customer: "Piet Pieters",
-    status: "Geannuleerd",
-    items: ["Graafmachine"],
-  },
-];
-
-const mockInventory = [
-  { id: "EQ-100", name: "Boormachine #1", available: true },
-  { id: "EQ-101", name: "Boormachine #2", available: true },
-  { id: "EQ-200", name: "Graafmachine #1", available: false },
-];
-
-
-export default function RegisterIssue() {
-    const [query, setQuery] = useState("");
+export default function RegisterIssue({ reservations }) {
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -33,19 +12,28 @@ export default function RegisterIssue() {
   const [message, setMessage] = useState("");
 
   const handleSearch = () => {
-    const filtered = mockReservations.filter(
+    const filtered = reservations.filter(
       (r) =>
-        r.id.toLowerCase().includes(query.toLowerCase()) ||
-        r.customer.toLowerCase().includes(query.toLowerCase())
+        r.id.toString().includes(query) ||
+        r.user?.name?.toLowerCase().includes(query.toLowerCase())
     );
     setResults(filtered);
   };
 
-  const handleIssue = () => {
+  useEffect(() => {
+    setSelectedItem(null);
+  }, [query]);
+
+  const handleIssue = async () => {
     if (!selectedReservation) return;
 
-    if (selectedReservation.status === "Geannuleerd") {
+    if (selectedReservation.status === "geannuleerd") {
       setMessage("Deze reservering is geannuleerd.");
+      return;
+    }
+
+    if (selectedReservation.status === "uitgegeven") {
+      setMessage("Deze reservering is al uitgegeven.");
       return;
     }
 
@@ -54,14 +42,32 @@ export default function RegisterIssue() {
       return;
     }
 
-    setMessage("Succesvol uitgegeven!");
-    // hier zou je API call doen
+    try {
+      const res = await axios.patch(`/medewerker/reservations/${selectedReservation.id}`, {
+        barcode_id: selectedItem.id,
+        condition,
+        accessories,
+      });
+
+      setMessage("Succesvol uitgegeven!");
+      setSelectedReservation(res.reservation);
+      setResults(results.map(r =>
+        r.id === selectedReservation.id ? { ...r, status: 'uitgegeven' } : r
+      ));
+      setSelectedReservation({ ...selectedReservation, status: 'uitgegeven' });
+
+      setSelectedItem(null);
+
+    } catch (error) {
+      console.error(error);
+      setMessage("Er is iets misgegaan bij het uitgeven.");
+    }
   };
 
-    return(
-     <div className="min-h-screen bg-slate-50 py-16 px-4">
+  return (
+    <div className="min-h-screen bg-slate-50 py-16 px-4">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow">
-        
+
         <h1 className="text-2xl font-bold mb-6">Reservering Uitgeven</h1>
 
         {/* SEARCH */}
@@ -86,15 +92,22 @@ export default function RegisterIssue() {
           {results.map((res) => (
             <div
               key={res.id}
-              onClick={() => setSelectedReservation(res)}
-              className={`p-4 border rounded-lg cursor-pointer ${
-                selectedReservation?.id === res.id
-                  ? "border-orange-500"
-                  : ""
-              }`}
+              onClick={() => {
+                if (selectedReservation?.id === res.id) {
+                  setSelectedReservation(null);
+                  setSelectedItem(null);
+                } else {
+                  setSelectedReservation(res);
+                  setSelectedItem(null);
+                }
+              }}
+              className={`p-4 border rounded-lg cursor-pointer ${selectedReservation?.id === res.id
+                ? "border-orange-500"
+                : ""
+                }`}
             >
               <p className="font-bold">{res.id}</p>
-              <p className="text-sm text-slate-600">{res.customer}</p>
+              <p className="text-sm text-slate-600">{res.user?.name}</p>
               <p className="text-xs">{res.status}</p>
             </div>
           ))}
@@ -104,22 +117,37 @@ export default function RegisterIssue() {
         {selectedReservation && (
           <>
             <h2 className="font-semibold mb-2">Selecteer exemplaar</h2>
+
             <div className="space-y-2 mb-6">
-              {mockInventory
-                .filter((i) => i.available)
-                .map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => setSelectedItem(item)}
-                    className={`p-3 border rounded cursor-pointer ${
-                      selectedItem?.id === item.id
-                        ? "border-orange-500"
-                        : ""
+              {selectedReservation.barcode ? (
+                <div
+                  onClick={() => setSelectedItem(selectedReservation.barcode)}
+                  className={`p-3 border rounded cursor-pointer ${selectedItem?.id === selectedReservation.barcode.id
+                    ? "border-orange-500"
+                    : ""
                     }`}
-                  >
-                    {item.name}
-                  </div>
-                ))}
+                >
+                  {selectedReservation.barcode.tool?.name} (
+                  {selectedReservation.barcode.barcode})
+                </div>
+              ) : (
+                <p>Geen barcode gevonden</p>
+              )}
+            </div>
+
+            {/* DATES */}
+            <div className="mb-6 p-4 bg-slate-100 rounded-lg">
+              <h3 className="font-semibold mb-2">Reserveringsperiode</h3>
+
+              <p className="text-sm">
+                <span className="font-medium">Ophaaltijd:</span>{" "}
+                {new Date(selectedReservation.pickuptime).toLocaleString()}
+              </p>
+
+              <p className="text-sm">
+                <span className="font-medium">Retourtijd:</span>{" "}
+                {new Date(selectedReservation.returntime).toLocaleString()}
+              </p>
             </div>
 
             {/* OPTIONAL FIELDS */}
@@ -168,5 +196,5 @@ export default function RegisterIssue() {
         )}
       </div>
     </div>
-    )
+  )
 }

@@ -11,7 +11,10 @@ Route::inertia('/', 'welcome', [
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 });
+Route::prefix('medewerker')->group(function(){
+    Route::get('/uitgifte-registreren',[EmployeeController::class, 'index']);
+    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'update']);
 
-Route::get('/uitgifte-registreren',[EmployeeController::class, 'index']);
+});
 
 require __DIR__.'/settings.php';
