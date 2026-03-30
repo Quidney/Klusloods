@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { Search, CheckCircle, AlertTriangle } from "lucide-react";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 export default function RegisterIssue({ reservations }) {
   const [query, setQuery] = useState("");
@@ -28,17 +31,17 @@ export default function RegisterIssue({ reservations }) {
     if (!selectedReservation) return;
 
     if (selectedReservation.status === "geannuleerd") {
-      setMessage("Deze reservering is geannuleerd.");
+      toast.error("Deze reservering is geannuleerd.");
       return;
     }
 
     if (selectedReservation.status === "uitgegeven") {
-      setMessage("Deze reservering is al uitgegeven.");
+      toast.error("Deze reservering is al uitgegeven.");
       return;
     }
 
     if (!selectedItem) {
-      setMessage("Selecteer een beschikbaar exemplaar.");
+      toast.warning("Selecteer een beschikbaar exemplaar.");
       return;
     }
 
@@ -48,8 +51,7 @@ export default function RegisterIssue({ reservations }) {
         condition,
         accessories,
       });
-
-      setMessage("Succesvol uitgegeven!");
+      toast.success("Succesvol uitgegeven!");
       setSelectedReservation(res.reservation);
       setResults(results.map(r =>
         r.id === selectedReservation.id ? { ...r, status: 'uitgegeven' } : r
@@ -60,7 +62,7 @@ export default function RegisterIssue({ reservations }) {
 
     } catch (error) {
       console.error(error);
-      setMessage("Er is iets misgegaan bij het uitgeven.");
+      toast.error("Er is iets misgegaan bij het uitgeven.");
     }
   };
 
@@ -182,6 +184,7 @@ export default function RegisterIssue({ reservations }) {
             </button>
           </>
         )}
+        
 
         {/* MESSAGE */}
         {message && (
@@ -194,7 +197,20 @@ export default function RegisterIssue({ reservations }) {
             <span>{message}</span>
           </div>
         )}
+
+        <ToastContainer 
+        position="top-right" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover
+      />
       </div>
     </div>
+    
   )
 }
