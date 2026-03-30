@@ -39,6 +39,5 @@ Route::prefix('medewerker')->group(function(){
 
 });
 
-Route::get('/uitgifte-registreren',[EmployeeController::class, 'index']);
 
 require __DIR__.'/settings.php';
