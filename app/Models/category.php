@@ -10,6 +10,6 @@ class Category extends Model
     use HasFactory;
     public function tool()
     {
-        return $this->hasOne(tool::class);
+        return $this->hasMany(tool::class);
     }
 }
