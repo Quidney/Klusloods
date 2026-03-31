@@ -17,6 +17,7 @@
                     }
                 }
             })();
+
             window.csrfToken='{{ csrf_token() }}'
         </script>
 
