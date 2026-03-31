@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\StatController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\CategorieController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use App\Http\Controllers\ProductController;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
@@ -9,8 +13,22 @@ Route::inertia('/', 'welcome', [
 ])->name('home');
 
 Route::prefix('admin')->group(function(){
+    Route::get('/category',[CategorieController::class,'index'])->name('category');
+    Route::put('/category',[CategorieController::class,'update'])->name('category.update');
+    Route::delete('/category/{id}',[CategorieController::class,'destroy'])->name('category.destroy');
+    Route::post('/category',[CategorieController::class,'store'])->name('category.store');
+    Route::get('/tools',[ProductController::class,'index'])->name('tools.index');
+    Route::put('/tools',[ProductController::class,'update'])->name('tools.update');
+    Route::post('/tools',[ProductController::class,'create'])->name('tools.create');
+    Route::delete('/tools/{id}',[ProductController::class,'destroy'])->name('tools.destroy');
+    Route::post('/barcodes',[ProductController::class,'store'])->name('tools.barcode.add');
+    Route::put('/barcodes',[ProductController::class,'edit'])->name('tools.barcode.update');
+    Route::get('users',[UserController::class,'index'])->name('users');
+    Route::put('users',[UserController::class,'update'])->name('users.update');
     Route::get('/stats',[StatController::class,'index'])->name('stats');
 });
+    
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 });
