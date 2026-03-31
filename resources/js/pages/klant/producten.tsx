@@ -1,147 +1,195 @@
-// Optimized image handling for image_0.png structure
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Head } from '@inertiajs/react';
 
-// Product data (simplified sample)
-const initialProducts = [
-  { id: 1, name: "DeWalt 20V Max Schroevendraaier", price: 18.50, image: "https://images.unsplash.com/photo-1594895874271-9c60e33beec1?q=80&w=1200&auto=format&fit=crop" },
-  { id: 2, name: "Bosch Professionele Klopboormachine", price: 25.00, image: "https://images.unsplash.com/photo-1620614902899-733d3b664d6d?q=80&w=1200&auto=format&fit=crop" },
-  { id: 3, name: "Estwing Klauwhamer 450g", price: 6.50, image: "https://images.unsplash.com/photo-1579294247265-d4e51bd08d70?q=80&w=1200&auto=format&fit=crop" },
-  { id: 4, name: "Stanley Betonschaar 900mm", price: 15.00, image: "https://images.unsplash.com/photo-1582294119799-231f8b1c4b2b?q=80&w=1200&auto=format&fit=crop" },
-  { id: 5, name: "Snelbouwankers M12 (50st)", price: 32.00, image: "https://images.unsplash.com/photo-1610996883204-e3c69c65691d?q=80&w=1200&auto=format&fit=crop" },
-  { id: 6, name: "Laserliner Kruislijnlaser", price: 40.00, image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?q=80&w=1200&auto=format&fit=crop" },
-];
+// --- 1. INTERFACES ---
+interface ToolPrice {
+    dayprice: string | number;
+}
 
-export default function Producten() {
-  const [products] = useState(initialProducts);
+interface Barcode {
+    id: number;
+    tool_id: number;
+    status: string;
+}
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-      
-      {/* 1. Header (Navbar) - Left-aligned logo, Right-aligned user */}
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-orange-500 text-3xl">🛠️</span> {/* Simplified wrench icon */}
-            <span className="text-3xl font-extrabold text-gray-950">Klusloods</span>
-          </div>
-          <button className="text-gray-600 hover:text-orange-500">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-          </button>
-        </div>
-      </nav>
+interface Category {
+    id: number;
+    name: string;
+}
 
-      {/* Main Content Area */}
-      <main className="flex-grow max-w-[1600px] mx-auto w-full px-6 py-10">
-        
-        {/* 2. Filters / Search / Add Category (Structured like image_0.png) */}
-        <div className="flex flex-col md:flex-row md:justify-center items-center my-8 gap-4 max-w-7xl mx-auto border-b-2 border-orange-200 pb-12 mb-12">
-          
-          {/* Searchbar (Positioned like the line in image_0.png) */}
-          <div className="relative w-full md:w-2/3">
-            <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </span>
-            <input
-              type="text"
-              placeholder="Zoeken naar producten..."
-              className="w-full pl-12 pr-6 py-3.5 border-2 border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition text-lg"
-            />
-          </div>
+interface Tool {
+    id: number;
+    name: string;
+    description?: string;
+    images?: string; // Changed from image_path to images to match your DB
+    category?: Category;
+    price?: ToolPrice | ToolPrice[];
+    barcode?: Barcode[]; 
+}
 
-          {/* Add Item Button (Extra from image_1.png skin) */}
-          <button className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold p-3.5 rounded-xl shadow-md transition-all flex items-center justify-center">
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path></svg>
-          </button>
-        </div>
+interface Props {
+    tools: Tool[];
+}
 
-        {/* 3. Product Grid (2x3 structure from image_0.png) */}
-        <div className="max-w-7xl mx-auto">
-            <h1 className="text-3xl font-extrabold text-gray-950 mb-10">Product Catalogus</h1>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-              {products.map((product) => (
-                <div key={product.id} className="bg-white border rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col group">
-                  <div className="aspect-video w-full max-h-[220px] bg-gray-100 overflow-hidden flex items-center justify-center">
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
+export default function Producten({ tools }: Props) {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('Alle');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
-                  {/* Product Details */}
-                  <div className="p-8 flex flex-col flex-grow">
-                    
-                    {/* {Naam} placeholder content, now styled and real */}
-                    <h3 className="text-xl font-bold text-gray-950 mb-1.5 line-clamp-2">{product.name}</h3>
-                    
-                    {/* Prijs (per dag) placeholder content, now styled and real */}
-                    <div className="text-2xl font-bold text-orange-500 mb-8 mt-auto flex items-baseline">
-                        <span className="text-base font-medium text-gray-600 mr-1.5">€</span>
-                        {product.price.toFixed(2)}
-                        <span className="text-sm font-medium text-gray-500 ml-1.5">/ dag</span>
+    // Filter Logic
+    const categories = ['Alle', ...new Set(tools.map(tool => tool.category?.name).filter(Boolean))];
+
+    const filteredTools = tools.filter(tool => {
+        const matchesSearch = tool.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = selectedCategory === 'Alle' || tool.category?.name === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsFilterOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    return (
+        <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+            <Head title="Producten - Klusloods" />
+
+            <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
+                <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <span className="text-orange-500 text-3xl">🛠️</span>
+                        <span className="text-3xl font-extrabold text-gray-950 tracking-tight">Klusloods</span>
                     </div>
-                    
-                    {/* [Reserveren] button (Large, orange from image_1.png color palette) */}
-                    <button className="w-full bg-slate-900 hover:bg-slate-950 text-white font-semibold px-8 py-3.5 rounded-xl shadow transition mt-auto">
-                        Reserveren
-                    </button>
-                  </div>
                 </div>
-              ))}
-            </div>
-            
+            </nav>
+
+            <main className="flex-grow max-w-[1600px] mx-auto w-full px-6 py-10">
+                
+                {/* --- SEARCH & FILTERS --- */}
+                <div className="flex flex-col md:flex-row md:justify-center items-center my-8 gap-4 max-w-7xl mx-auto border-b-2 border-orange-200 pb-12 mb-12">
+                    
+                    <div className="relative w-full md:w-2/3">
+                        <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                        <input
+                            type="text"
+                            placeholder="Zoek op naam..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            // BLACK TEXT: text-gray-950
+                            className="w-full pl-12 pr-6 py-3.5 border-2 border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition text-lg bg-white shadow-sm text-gray-950 placeholder-gray-400 font-medium"
+                        />
+                    </div>
+
+                    <div className="relative w-full md:w-auto" ref={dropdownRef}>
+                        <button
+                            onClick={() => setIsFilterOpen(!isFilterOpen)}
+                            className={`flex items-center justify-center gap-2 px-6 py-3.5 border-2 rounded-xl transition-all text-lg font-semibold shadow-sm w-full md:w-auto
+                                ${selectedCategory !== 'Alle' 
+                                    ? 'border-orange-500 bg-orange-50 text-orange-600' 
+                                    : 'border-orange-200 bg-white text-gray-700 hover:border-orange-400'
+                                }`}
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                            </svg>
+                            <span>{selectedCategory === 'Alle' ? 'Filter' : selectedCategory}</span>
+                        </button>
+
+                        {isFilterOpen && (
+                            <div className="absolute right-0 mt-2 w-full md:w-64 bg-white border border-gray-100 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1">
+                                <div className="py-2">
+                                    {categories.map((cat) => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => {
+                                                setSelectedCategory(cat);
+                                                setIsFilterOpen(false);
+                                            }}
+                                            className={`w-full text-left px-6 py-3 text-sm transition-colors hover:bg-orange-50 
+                                                ${selectedCategory === cat ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700'}`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* --- PRODUCT GRID --- */}
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                        {filteredTools.map((tool) => {
+                            
+                            const isAvailable = tool.barcode?.some(
+                                (b) => b.status?.toLowerCase().trim() === 'beschikbaar'
+                            ) ?? false;
+
+                            return (
+                                <div key={tool.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col group">
+                                    {/* Image Section */}
+                                    <div className="aspect-video w-full max-h-[220px] bg-gray-100 overflow-hidden flex items-center justify-center border-b border-gray-50 relative">
+                                        {tool.images ? (
+                                            <img 
+                                                src={`${tool.images.replace('public/', '')}`} 
+                                                alt={tool.name} 
+                                                className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${!isAvailable ? 'grayscale opacity-60' : ''}`}
+                                            />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center text-gray-400 italic text-sm text-center px-6">
+                                                <p>Geen afbeelding beschikbaar</p>
+                                            </div>
+                                        )}
+                                        {/* Stock Badge */}
+                                        <div className={`absolute top-4 right-4 text-white text-xs font-bold px-3 py-1 rounded-full uppercase shadow-md transition-colors ${isAvailable ? 'bg-green-500' : 'bg-red-600'}`}>
+                                            {isAvailable ? 'Op Voorraad' : 'Niet op voorraad'}
+                                        </div>
+
+                                        <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold text-gray-600 shadow-sm border border-gray-100">
+                                            {tool.category?.name || 'Overig'}
+                                        </div>
+                                    </div>
+
+                                    <div className="p-8 flex flex-col flex-grow">
+                                        <h3 className="text-xl font-bold text-gray-950 mb-2 line-clamp-1">{tool.name}</h3>
+                                        <p className="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed">{tool.description || 'Professioneel gereedschap voor elke klus.'}</p>
+                                        
+                                        {/* Button */}
+                                        <button 
+                                            disabled={!isAvailable}
+                                            className={`w-full font-bold mt-auto px-8 py-4 rounded-xl shadow-lg transition-all transform active:scale-95 
+                                                ${isAvailable 
+                                                    ? 'bg-slate-900 hover:bg-slate-950 text-white hover:shadow-orange-100' 
+                                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                                                }`}
+                                        >
+                                            {isAvailable ? 'Reserveren' : 'Niet beschikbaar'}
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {filteredTools.length === 0 && (
+                        <div className="text-center py-24 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+                            <p className="text-gray-400 text-xl font-medium">Geen gereedschap gevonden.</p>
+                        </div>
+                    )}
+                </div>
+            </main>
         </div>
-
-      </main>
-
-      {/* 4. Footer (Detailed and Navy, from image_1.png) */}
-      <footer className="bg-slate-950 text-gray-100 mt-24">
-        <div className="max-w-[1600px] mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
-          
-          {/* Column 1 - Logo & About */}
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center gap-2">
-                <span className="text-orange-500 text-3xl">🛠️</span>
-                <span className="text-3xl font-extrabold">BuildRent</span>
-            </div>
-            <p className="text-gray-300 text-base leading-relaxed">
-              Your trusted partner for professional-grade building tools and materials. Quality equipment, exactly when you need it.
-            </p>
-            <div className="flex items-center gap-5 pt-3">
-                {["fb", "ig", "x"].map(icon => (
-                    <button key={icon} className="bg-slate-800 hover:bg-slate-700 w-12 h-12 rounded-full font-bold flex items-center justify-center transition shadow-inner">
-                        {icon.toUpperCase()}
-                    </button>
-                ))}
-            </div>
-          </div>
-
-          {/* Columns 2-4 - Link Groups */}
-          {[
-            { title: "EQUIPMENT", links: ["Power Tools", "Heavy Machinery", "Scaffolding & Ladders", "Landscaping", "Raw Materials"] },
-            { title: "COMPANY", links: ["About Us", "How It Works", "Pro Accounts", "Locations", "Careers"] },
-            { title: "SUPPORT", links: ["Contact Us", "FAQ", "Rental Policies", "Report an Issue"] }
-          ].map((group) => (
-            <div key={group.title} className="flex flex-col gap-6">
-                <h4 className="text-base font-bold text-orange-500 tracking-wider mb-2">{group.title}</h4>
-                <ul className="flex flex-col gap-4 text-base">
-                    {group.links.map(link => (
-                        <li key={link}><a href="#" className="hover:text-orange-400 text-gray-300 transition">{link}</a></li>
-                    ))}
-                </ul>
-            </div>
-          ))}
-
-        </div>
-        
-        {/* Sub-footer (Copyright etc) */}
-        <div className="border-t border-slate-800">
-            <div className="max-w-[1600px] mx-auto px-6 py-6 text-center text-sm text-gray-400">
-              &copy; {new Date().getFullYear()} BuildRent B.V. Alle rechten voorbehouden. Admin Panel v1.0
-            </div>
-        </div>
-      </footer>
-    </div>
-  );
+    );
 }

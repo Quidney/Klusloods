@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Tool;
 use Inertia\Inertia;
 
 class ReserveringController extends Controller
 {
-    public function index()
-    {
-        return Inertia::render('klant/producten');
-    }
+public function index()
+{
+    $tools = Tool::with(['price', 'barcode', 'category'])->get();
+
+    return Inertia::render('klant/producten', [
+        'tools' => $tools
+    ]);
+}
 }
