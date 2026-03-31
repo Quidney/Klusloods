@@ -342,7 +342,7 @@ function UserRow({ user }) {
     });
 
     function submit() {
-        put('users');
+        put('');
     }
     return (
         <tr className="group transition-colors hover:bg-slate-50">
