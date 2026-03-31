@@ -17,7 +17,7 @@ class CompanySeeder extends Seeder
         Company::create([
         'Kvk' => '12345678',
         'IBAN' => 'NL99 BANK 0123 4567 89',
-        'address' => 'test',
+        'address' => 'Schouwburgplein 1, 7607 AE Almelo',
         'email' => 'klusloods@gmail.com',
         'phonenumber' => '1234567890'
         ]);

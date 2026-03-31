@@ -26,7 +26,7 @@ class PaymentSeeder extends Seeder
         'id' => 2,
         'invoice_id' => 2,
         'date' => now(),
-        'amount' => 0,
+        'amount' => 5,
         'method' => 'contant',
         ]);
     }
