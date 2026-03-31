@@ -5,6 +5,7 @@ use App\Http\Controllers\CategorieController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReserveringController;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
@@ -25,7 +26,8 @@ Route::prefix('admin')->group(function(){
     Route::get('users',[UserController::class,'index'])->name('users');
     Route::put('users',[UserController::class,'update'])->name('users.update');
 });
-    
+
+Route::get('/klant/producten',[ReserveringController::class,'index'])->name('reservering.index'); 
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
