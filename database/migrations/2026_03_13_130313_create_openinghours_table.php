@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('openinghours', function (Blueprint $table) {
             $table->id();
             $table->enum('day',['maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag','zondag']);
-            $table->time('startime');
-            $table->time('endtime');
+            $table->time('startime')->nullable();
+            $table->time('endtime')->nullable();
             $table->enum('status',['open','gesloten']);
+            $table->timestamps();
         });
     }
 
