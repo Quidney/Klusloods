@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategorieController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,6 +22,8 @@ Route::prefix('admin')->group(function(){
     Route::delete('/tools/{id}',[ProductController::class,'destroy'])->name('tools.destroy');
     Route::post('/barcodes',[ProductController::class,'store'])->name('tools.barcode.add');
     Route::put('/barcodes',[ProductController::class,'edit'])->name('tools.barcode.update');
+    Route::get('users',[UserController::class,'index'])->name('users');
+    Route::put('users',[UserController::class,'update'])->name('users.update');
 });
     
 
