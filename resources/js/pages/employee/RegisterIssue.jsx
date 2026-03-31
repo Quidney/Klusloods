@@ -13,14 +13,25 @@ export default function RegisterIssue({ reservations }) {
   const [condition, setCondition] = useState("");
   const [accessories, setAccessories] = useState("");
   const [message, setMessage] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
+
+  console.log('reservations', reservations);
 
   const handleSearch = () => {
-    const filtered = reservations.filter(
-      (r) =>
-        r.id.toString().includes(query) ||
-        r.user?.name?.toLowerCase().includes(query.toLowerCase())
-    );
+    const q = query.toLowerCase();
+
+    const filtered = reservations.filter((r) => {
+      const fullName = `${r.user?.firstname ?? ""} ${r.user?.lastname ?? ""}`.toLowerCase();
+
+      return (
+        r.id.toString().includes(q) ||
+        fullName.includes(q) ||
+        r.user?.email?.toLowerCase().includes(q)
+      );
+    });
+
     setResults(filtered);
+    setHasSearched(true);
   };
 
   useEffect(() => {
@@ -53,8 +64,8 @@ export default function RegisterIssue({ reservations }) {
       });
       toast.success("Succesvol uitgegeven!");
       setSelectedReservation(res.reservation);
-      setResults(results.map(r =>
-        r.id === selectedReservation.id ? { ...r, status: 'uitgegeven' } : r
+      setResults(results.map(result =>
+        result.id === selectedReservation.id ? { ...result, status: 'uitgegeven' } : result
       ));
       setSelectedReservation({ ...selectedReservation, status: 'uitgegeven' });
 
@@ -68,33 +79,32 @@ export default function RegisterIssue({ reservations }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* <div className=""> */}
-        {/* --- NAVIGATION --- */}
-        <nav className="sticky top-0 z-50 bg-slate-900 text-white">
-          <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-orange-500 p-2">
-                <Wrench className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold tracking-tight">
-                Build<span className="text-orange-500">Rent</span>
-              </span>
-              <span className="ml-4 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-xs font-bold text-orange-400">
-                BEHEERDER
-              </span>
+      {/* --- NAVIGATION --- */}
+      <nav className="sticky top-0 z-50 bg-slate-900 text-white">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <div className="rounded-lg bg-orange-500 p-2">
+              <Wrench className="h-6 w-6 text-white" />
             </div>
-            <div className="flex items-center gap-6">
-              <button className="transition-colors hover:text-orange-500">
-                <User className="h-5 w-5" />
-              </button>
-              <button className="md:hidden">
-                <Menu className="h-6 w-6" />
-              </button>
-            </div>
+            <span className="text-2xl font-bold tracking-tight">
+              Build<span className="text-orange-500">Rent</span>
+            </span>
+            <span className="ml-4 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-xs font-bold text-orange-400">
+              BEHEERDER
+            </span>
           </div>
-        </nav>
+          <div className="flex items-center gap-6">
+            <button className="transition-colors hover:text-orange-500">
+              <User className="h-5 w-5" />
+            </button>
+            <button className="md:hidden">
+              <Menu className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+      </nav>
 
-        <main className="flex-grow">
+      <main className="flex-grow">
         <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow">
 
           <h1 className="text-2xl font-bold mb-6 p-2">Reservering Uitgeven</h1>
@@ -118,28 +128,32 @@ export default function RegisterIssue({ reservations }) {
 
           {/* RESULTS */}
           <div className="space-y-3 mb-6">
-            {results.map((res) => (
-              <div
-                key={res.id}
-                onClick={() => {
-                  if (selectedReservation?.id === res.id) {
-                    setSelectedReservation(null);
-                    setSelectedItem(null);
-                  } else {
-                    setSelectedReservation(res);
-                    setSelectedItem(null);
-                  }
-                }}
-                className={`p-4 border rounded-lg cursor-pointer ${selectedReservation?.id === res.id
-                  ? "border-orange-500"
-                  : ""
-                  }`}
-              >
-                <p className="font-bold">{res.id}</p>
-                <p className="text-sm text-slate-600">{res.user?.name}</p>
-                <p className="text-xs">{res.status}</p>
-              </div>
-            ))}
+            {hasSearched && results.length === 0 ? (
+              <p className="text-slate-500">reservering niet gevonden</p>
+            ) : (
+              results.map((res) => (
+                <div
+                  key={res.id}
+                  onClick={() => {
+                    if (selectedReservation?.id === res.id) {
+                      setSelectedReservation(null);
+                      setSelectedItem(null);
+                    } else {
+                      setSelectedReservation(res);
+                      setSelectedItem(null);
+                    }
+                  }}
+                  className={`p-4 border rounded-lg cursor-pointer ${selectedReservation?.id === res.id ? "border-orange-500" : ""
+                    }`}
+                >
+                  <p className="font-bold">{res.id}</p>
+                  <p className="text-sm text-slate-600">
+                    {res.user?.firstname} {res.user?.lastname}
+                  </p>
+                  <p className="text-xs">{res.status}</p>
+                </div>
+              ))
+            )}
           </div>
 
           {/* INVENTORY SELECT */}
@@ -225,78 +239,77 @@ export default function RegisterIssue({ reservations }) {
             </div>
           )}
         </div>
-        </main>
+      </main>
 
-        {/* FOOTER*/}
-        <footer className="border-t border-slate-800 bg-slate-950 pt-16 pb-8 text-slate-300">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* FOOTER*/}
+      <footer className="border-t border-slate-800 bg-slate-950 pt-16 pb-8 text-slate-300">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-            <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
 
-              <div>
-                <div className="mb-6 flex items-center gap-2">
-                  <div className="rounded-lg bg-orange-500 p-1.5">
-                    <Wrench className="h-5 w-5 text-white" />
-                  </div>
-                  <span className="text-xl font-bold tracking-tight text-white">
-                    Build<span className="text-orange-500">Rent</span>
-                  </span>
+            <div>
+              <div className="mb-6 flex items-center gap-2">
+                <div className="rounded-lg bg-orange-500 p-1.5">
+                  <Wrench className="h-5 w-5 text-white" />
                 </div>
-                <p className="mb-6 leading-relaxed text-slate-400">
-                  Your trusted partner for professional-grade building tools and materials.
-                </p>
+                <span className="text-xl font-bold tracking-tight text-white">
+                  Build<span className="text-orange-500">Rent</span>
+                </span>
               </div>
-
-              <div>
-                <h4 className="mb-6 text-sm font-bold tracking-wider text-white uppercase">
-                  Equipment
-                </h4>
-                <ul className="space-y-3">
-                  <li><a href="#" className="hover:text-orange-400">Power Tools</a></li>
-                  <li><a href="#" className="hover:text-orange-400">Heavy Machinery</a></li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="mb-6 text-sm font-bold tracking-wider text-white uppercase">
-                  Company
-                </h4>
-                <ul className="space-y-3">
-                  <li><a href="#" className="hover:text-orange-400">About Us</a></li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="mb-6 text-sm font-bold tracking-wider text-white uppercase">
-                  Support
-                </h4>
-                <ul className="space-y-3">
-                  <li><a href="#" className="hover:text-orange-400">Contact</a></li>
-                </ul>
-              </div>
-
+              <p className="mb-6 leading-relaxed text-slate-400">
+                Your trusted partner for professional-grade building tools and materials.
+              </p>
             </div>
 
-            <div className="border-t border-slate-800 pt-8 text-sm text-slate-500 text-center">
-              © {new Date().getFullYear()} BuildRent
+            <div>
+              <h4 className="mb-6 text-sm font-bold tracking-wider text-white uppercase">
+                Equipment
+              </h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="hover:text-orange-400">Power Tools</a></li>
+                <li><a href="#" className="hover:text-orange-400">Heavy Machinery</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="mb-6 text-sm font-bold tracking-wider text-white uppercase">
+                Company
+              </h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="hover:text-orange-400">About Us</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="mb-6 text-sm font-bold tracking-wider text-white uppercase">
+                Support
+              </h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="hover:text-orange-400">Contact</a></li>
+              </ul>
             </div>
 
           </div>
-        </footer>
 
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
-      </div>
-    // </div>
+          <div className="border-t border-slate-800 pt-8 text-sm text-slate-500 text-center">
+            © {new Date().getFullYear()} BuildRent
+          </div>
+
+        </div>
+      </footer>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+    </div>
 
   )
 }
