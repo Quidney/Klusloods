@@ -106,9 +106,9 @@ class ProductController extends Controller
             'name' => 'required|max:50',
             'description' => 'required|max:255',
             'images' => 'nullable|file|mimes:jpg,png,gif,jpeg|max:4096',
-            'deposit' => "numeric|required",
-            'weekprice' => "numeric|required",
-            'dayprice' => "numeric|required",
+            'deposit' => "numeric|required|min:0",
+            'weekprice' => "numeric|required|min:0",
+            'dayprice' => "numeric|required|min:0",
         ]);
 
         $tool = new Tool();
@@ -204,9 +204,9 @@ class ProductController extends Controller
             'name'=>'required|string|max:50',
             'description'=>'required|string|max:255',
             'images'=>'nullable|file|mimes:jpg,png,gif,jpeg|max:4096',
-            'deposit'=>"numeric|required",
-            'weekprice'=>"numeric|required",
-            'dayprice'=>"numeric|required",
+            'deposit'=>"numeric|required|min:0",
+            'weekprice'=>"numeric|required|min:0",
+            'dayprice'=>"numeric|required|min:0",
             'category_id'=>"int|required|exists:categories,id",
         ]);
         

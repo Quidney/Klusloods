@@ -171,6 +171,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
                             <div className="relative">
                                 <input
                                     type="number"
+                                    min="0"
                                     value={data.dayprice}
                                     onChange={(e) =>
                                         setData('dayprice', e.target.value)
@@ -196,6 +197,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
                             <div className="relative">
                                 <input
                                     type="number"
+                                    min="0"
                                     value={data.weekprice}
                                     onChange={(e) =>
                                         setData('weekprice', e.target.value)
@@ -223,6 +225,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories }) => {
                             <input
                                 type="number"
                                 placeholder="0.00"
+                                    min="0"
                                 value={data.deposit}
                                 onChange={(e) =>
                                     setData('deposit', e.target.value)

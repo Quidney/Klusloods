@@ -172,6 +172,7 @@ const AddProductModal = ({ isOpen, onClose, categories }) => {
                                 <input
                                     type="number"
                                     value={data.dayprice}
+                                    min="0"
                                     onChange={(e) =>
                                         setData('dayprice', e.target.value)
                                     }
@@ -197,6 +198,7 @@ const AddProductModal = ({ isOpen, onClose, categories }) => {
                                 <input
                                     type="number"
                                     value={data.weekprice}
+                                    min="0"
                                     onChange={(e) =>
                                         setData('weekprice', e.target.value)
                                     }
@@ -224,6 +226,7 @@ const AddProductModal = ({ isOpen, onClose, categories }) => {
                                 type="number"
                                 placeholder="0.00"
                                 value={data.deposit}
+                                    min="0"
                                 onChange={(e) =>
                                     setData('deposit', e.target.value)
                                 }
