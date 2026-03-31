@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\StatController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategorieController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,7 @@ Route::prefix('admin')->group(function(){
     Route::put('/barcodes',[ProductController::class,'edit'])->name('tools.barcode.update');
     Route::get('users',[UserController::class,'index'])->name('users');
     Route::put('users',[UserController::class,'update'])->name('users.update');
+    Route::get('/stats',[StatController::class,'index'])->name('stats');
 });
     
 
