@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('prices', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('tool_id')->index()->constrained('tools');
             $table->float('dayprice',9.2);
             $table->float('weekprice',9.2);
             $table->float('deposit',9.2);
