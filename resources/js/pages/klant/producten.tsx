@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 
-// --- 1. INTERFACES ---
 interface ToolPrice {
     dayprice: string | number;
 }
@@ -21,7 +20,7 @@ interface Tool {
     id: number;
     name: string;
     description?: string;
-    images?: string; // Changed from image_path to images to match your DB
+    images?: string;
     category?: Category;
     price?: ToolPrice | ToolPrice[];
     barcode?: Barcode[]; 
@@ -37,7 +36,6 @@ export default function Producten({ tools }: Props) {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Filter Logic
     const categories = ['Alle', ...new Set(tools.map(tool => tool.category?.name).filter(Boolean))];
 
     const filteredTools = tools.filter(tool => {
@@ -46,7 +44,10 @@ export default function Producten({ tools }: Props) {
         return matchesSearch && matchesCategory;
     });
 
-    // Close dropdown on click outside
+    const handleReserve = (toolId: number) => {
+        router.visit(`/klant/product/${toolId}`);
+    };
+
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -86,7 +87,6 @@ export default function Producten({ tools }: Props) {
                             placeholder="Zoek op naam..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            // BLACK TEXT: text-gray-950
                             className="w-full pl-12 pr-6 py-3.5 border-2 border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition text-lg bg-white shadow-sm text-gray-950 placeholder-gray-400 font-medium"
                         />
                     </div>
@@ -169,6 +169,7 @@ export default function Producten({ tools }: Props) {
                                         {/* Button */}
                                         <button 
                                             disabled={!isAvailable}
+                                            onClick={() => handleReserve(tool.id)}
                                             className={`w-full font-bold mt-auto px-8 py-4 rounded-xl shadow-lg transition-all transform active:scale-95 
                                                 ${isAvailable 
                                                     ? 'bg-slate-900 hover:bg-slate-950 text-white hover:shadow-orange-100' 
