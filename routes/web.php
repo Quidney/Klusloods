@@ -3,6 +3,7 @@
 use App\Http\Controllers\StatController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategorieController;
+use App\Http\Controllers\EmployeeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\ProductController;
@@ -31,6 +32,11 @@ Route::prefix('admin')->group(function(){
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
+});
+Route::prefix('medewerker')->group(function(){
+    Route::get('/uitgifte-registreren',[EmployeeController::class, 'index']);
+    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'update']);
+
 });
 
 require __DIR__.'/settings.php';
