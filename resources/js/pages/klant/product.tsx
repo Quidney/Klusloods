@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
-// Toastify imports toegevoegd
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -206,7 +205,6 @@ export default function Reservering({ tool }: Props) {
     const availableStock = tool?.stockCount ?? 
         (tool?.barcode?.filter(b => b.status?.toLowerCase().trim() === 'beschikbaar').length ?? 0);
 
-    // Prijsberekening met week- en dagprijzen
     const priceDetails = useMemo(() => {
         if (!pickupDate || !returnDate) return { days: 0, weeks: 0, extraDays: 0, total: 0 };
 
