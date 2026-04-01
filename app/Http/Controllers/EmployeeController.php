@@ -94,7 +94,7 @@ class EmployeeController extends Controller
 
     public function updateReturn(Request $request, Reservation $reservation)
     {
-        
+
         $retour = new Retour();
         $retour->reservation_id = $reservation->id;
         $retour->actualreturntime = $request->return_date;
@@ -102,11 +102,18 @@ class EmployeeController extends Controller
         $retour->notes = $request->description;
         $retour->cost = $request->damage_cost;
         $retour->save();
-        
+
         $reservation->update([
             'status' => 'afgerond'
         ]);
-        
+
+        $barcode = $reservation->barcode;
+        if ($barcode) {
+            $barcode->update([
+                'status' => $retour->status === 'in orde' ? 'beschikbaar' : 'onderhoud'
+            ]);
+        }
+
         return response()->json(['message' => 'Succesvol retour geregistreerd', 'retour' => $retour]);
     }
 
