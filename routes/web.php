@@ -42,8 +42,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 });
 Route::prefix('medewerker')->group(function(){
-    Route::get('/uitgifte-registreren',[EmployeeController::class, 'index']);
-    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'update']);
+    Route::get('/uitgifte-registreren',[EmployeeController::class, 'indexIssue']);
+    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'updateIssue']);
+    Route::get('/retour-registreren',[EmployeeController::class, 'indexReturn']);
+    Route::patch('/retour/{reservation}',[EmployeeController::class, 'updateReturn']);
 
 });
 
