@@ -29,6 +29,7 @@ Route::prefix('admin')->group(function(){
 
 Route::get('/klant/producten',[ReserveringController::class,'index'])->name('reservering.index'); 
 Route::get('/klant/product/{id}', [ReserveringController::class, 'show'])->name('reservering.show');
+Route::post('/klant/reserveren', [ReserveringController::class, 'store']);
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');

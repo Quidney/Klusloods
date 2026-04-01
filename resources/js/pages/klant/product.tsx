@@ -34,17 +34,36 @@ interface Props {
     tool: Tool;
 }
 
-function LabelValue({ label, value, valueClassName = "text-lg text-gray-950 font-bold" }: { label: string, value: string | number, valueClassName?: string }) {
-    return (
-        <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
-            <span className={valueClassName}>{value}</span>
-        </div>
-    );
-}
+    function LabelValue({ label, value, valueClassName = "text-lg text-gray-950 font-bold" }: { label: string, value: string | number, valueClassName?: string }) {
+        return (
+            <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
+                <span className={valueClassName}>{value}</span>
+            </div>
+        );
+    }
 
-function Calendar() {
+    interface CalendarProps {
+        pickupDate: string;
+        returnDate: string;
+        activeField: 'pickup' | 'return' | null;
+        setPickupDate: React.Dispatch<React.SetStateAction<string>>;
+        setReturnDate: React.Dispatch<React.SetStateAction<string>>;
+    }
+
+    function Calendar({
+        pickupDate,
+        returnDate,
+        activeField,
+        setPickupDate,
+        setReturnDate
+    }: CalendarProps) {
+
     const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
 
     const [currentDate, setCurrentDate] = useState<Date>(
         new Date(today.getFullYear(), today.getMonth(), 1)
@@ -77,11 +96,57 @@ function Calendar() {
         days.push(<div key={`empty-${i}`} />);
     }
 
+    const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    };
+
+    const handleClick = (day: number) => {
+        const selected = new Date(year, month, day);
+
+        if (selected < tomorrow) return;
+
+        const formatted = formatDate(selected);
+
+        if (activeField === 'pickup') {
+            setPickupDate(formatted);
+
+            if (returnDate && new Date(returnDate) < selected) {
+                setReturnDate('');
+            }
+        }
+
+        if (activeField === 'return') {
+            if (!pickupDate) return;
+            if (selected < new Date(pickupDate)) return;
+
+            setReturnDate(formatted);
+        }
+    };
+
     for (let d = 1; d <= daysInMonth; d++) {
+        const dateObj = new Date(year, month, d);
+        const formatted = formatDate(dateObj);
+
+        const isPast = dateObj < tomorrow;
+        const isPickup = pickupDate === formatted;
+        const isReturn = returnDate === formatted;
+
         days.push(
             <div
                 key={d}
-                className="h-10 flex items-center justify-center rounded-lg text-sm font-medium text-gray-900 hover:bg-orange-50 transition cursor-pointer"
+                onClick={() => handleClick(d)}
+                className={`h-10 flex items-center justify-center rounded-lg text-sm font-semibold transition
+                    ${isPast 
+                        ? 'bg-red-100 text-red-400 cursor-not-allowed' 
+                        : 'bg-green-50 text-green-800 cursor-pointer hover:bg-green-100'
+                    }
+                    ${isPickup ? 'bg-green-300 text-green-900 ring-2 ring-green-500' : ''}
+                    ${isReturn ? 'bg-red-300 text-red-900 ring-2 ring-red-500' : ''}
+                `}
             >
                 {d}
             </div>
@@ -120,6 +185,15 @@ function Calendar() {
 export default function Reservering({ tool }: Props) {
     const [pickupDate, setPickupDate] = useState<string>('');
     const [returnDate, setReturnDate] = useState<string>('');
+    const [activeField, setActiveField] = useState<'pickup' | 'return' | null>(null);
+
+    const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+    };
 
     const availableStock = tool?.stockCount ?? 
         (tool?.barcode?.filter(b => b.status?.toLowerCase().trim() === 'beschikbaar').length ?? 0);
@@ -135,8 +209,12 @@ export default function Reservering({ tool }: Props) {
 
     const handleConfirmReservation = () => {
         if (!canReserve) return;
-        
-        alert(`Reservering geplaatst voor ${tool.name}!\nVan: ${pickupDate}\nTot: ${returnDate}`);
+
+        router.post('/klant/reserveren', {
+            tool_id: tool.id,
+            pickupDate,
+            returnDate,
+        });
     };
 
     return (
@@ -204,9 +282,14 @@ export default function Reservering({ tool }: Props) {
                     <div className="bg-white border border-gray-100 rounded-3xl shadow-sm p-8 md:p-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
                         
                         <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden shadow-inner">
-                            <Calendar />
-                        </div>
-
+                        <Calendar 
+                            pickupDate={pickupDate}
+                            returnDate={returnDate}
+                            activeField={activeField}
+                            setPickupDate={setPickupDate}
+                            setReturnDate={setReturnDate}
+                        />                        
+                    </div>
                         <div className="flex flex-col justify-between">
                             <div className="flex flex-col gap-8">
                                 <h3 className="text-2xl font-black text-gray-950">Reserveer nu</h3>
@@ -217,8 +300,10 @@ export default function Reservering({ tool }: Props) {
                                         <input 
                                             type="date" 
                                             value={pickupDate}
+                                            min={formatDate(new Date(Date.now() + 86400000))}
+                                            onFocus={() => setActiveField('pickup')}
                                             onChange={(e) => setPickupDate(e.target.value)}
-                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 focus:ring-0 outline-none transition-all text-lg font-medium shadow-sm"
+                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 focus:ring-0 outline-none transition-all text-black font-medium shadow-sm"
                                         />
                                     </div>
                                     <div className="flex flex-col gap-2">
@@ -227,8 +312,9 @@ export default function Reservering({ tool }: Props) {
                                             type="date" 
                                             value={returnDate}
                                             min={pickupDate}
+                                            onFocus={() => setActiveField('return')}
                                             onChange={(e) => setReturnDate(e.target.value)}
-                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 focus:ring-0 outline-none transition-all text-lg font-medium shadow-sm"
+                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 focus:ring-0 outline-none transition-all text-black font-medium shadow-sm"
                                         />
                                     </div>
                                 </div>

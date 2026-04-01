@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Tool;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
+use App\Models\Barcode;
+use App\Models\Reservation;
+use Illuminate\Support\Facades\Auth;
 
 class ReserveringController extends Controller
 {
@@ -32,5 +36,35 @@ class ReserveringController extends Controller
         return Inertia::render('klant/product', [
             'tool' => $tool
         ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'tool_id' => 'required|exists:tools,id',
+            'pickupDate' => 'required|date',
+            'returnDate' => 'required|date|after_or_equal:pickupDate',
+        ]);
+
+        $barcode = Barcode::where('tool_id', $request->tool_id)
+            ->where('status', 'beschikbaar')
+            ->first();
+
+        if (!$barcode) {
+            return back()->withErrors(['error' => 'Geen voorraad beschikbaar']);
+        }
+
+        $reservation = new Reservation();
+        $reservation->user_id = Auth::id();
+        $reservation->barcode_id = $barcode->id;
+        $reservation->pickuptime = $request->pickupDate . ' 00:00:00';
+        $reservation->returntime = $request->returnDate . ' 00:00:00';
+        $reservation->status = 'gereserveerd';
+        $reservation->save();
+
+        $barcode->status = 'verhuurd';
+        $barcode->save();
+
+        return back()->with('success', 'Reservering geplaatst!');
     }
 }
