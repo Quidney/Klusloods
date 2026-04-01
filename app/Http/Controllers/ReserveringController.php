@@ -42,7 +42,7 @@ class ReserveringController extends Controller
     {
         $request->validate([
             'tool_id' => 'required|exists:tools,id',
-            'pickupDate' => 'required|date',
+            'pickupDate' => 'required|date|after_or_equal:today',
             'returnDate' => 'required|date|after_or_equal:pickupDate',
         ]);
 

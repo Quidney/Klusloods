@@ -166,18 +166,16 @@ export default function Producten({ tools }: Props) {
                                         <h3 className="text-xl font-bold text-gray-950 mb-2 line-clamp-1">{tool.name}</h3>
                                         <p className="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed">{tool.description || 'Professioneel gereedschap voor elke klus.'}</p>
                                         
-                                        {/* Button */}
-                                        <button 
-                                            disabled={!isAvailable}
-                                            onClick={() => handleReserve(tool.id)}
-                                            className={`w-full font-bold mt-auto px-8 py-4 rounded-xl shadow-lg transition-all transform active:scale-95 
-                                                ${isAvailable 
-                                                    ? 'bg-slate-900 hover:bg-slate-950 text-white hover:shadow-orange-100' 
-                                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                                                }`}
-                                        >
-                                            {isAvailable ? 'Reserveren' : 'Niet beschikbaar'}
-                                        </button>
+                                    <button 
+                                        onClick={() => handleReserve(tool.id)}
+                                        className={`w-full font-bold mt-auto px-8 py-4 rounded-xl shadow-lg transition-all transform active:scale-95 
+                                            ${isAvailable 
+                                                ? 'bg-slate-900 hover:bg-slate-950 text-white' 
+                                                : 'bg-orange-500 hover:bg-orange-600 text-white'
+                                            }`}
+                                    >
+                                        {isAvailable ? 'Reserveren' : 'Bekijk details'}
+                                    </button>
                                     </div>
                                 </div>
                             );

@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+// Toastify imports toegevoegd
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface Barcode {
     id: number;
@@ -34,30 +37,30 @@ interface Props {
     tool: Tool;
 }
 
-    function LabelValue({ label, value, valueClassName = "text-lg text-gray-950 font-bold" }: { label: string, value: string | number, valueClassName?: string }) {
-        return (
-            <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
-                <span className={valueClassName}>{value}</span>
-            </div>
-        );
-    }
+function LabelValue({ label, value, valueClassName = "text-lg text-gray-950 font-bold" }: { label: string, value: string | number, valueClassName?: string }) {
+    return (
+        <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
+            <span className={valueClassName}>{value}</span>
+        </div>
+    );
+}
 
-    interface CalendarProps {
-        pickupDate: string;
-        returnDate: string;
-        activeField: 'pickup' | 'return' | null;
-        setPickupDate: React.Dispatch<React.SetStateAction<string>>;
-        setReturnDate: React.Dispatch<React.SetStateAction<string>>;
-    }
+interface CalendarProps {
+    pickupDate: string;
+    returnDate: string;
+    activeField: 'pickup' | 'return' | null;
+    setPickupDate: React.Dispatch<React.SetStateAction<string>>;
+    setReturnDate: React.Dispatch<React.SetStateAction<string>>;
+}
 
-    function Calendar({
-        pickupDate,
-        returnDate,
-        activeField,
-        setPickupDate,
-        setReturnDate
-    }: CalendarProps) {
+function Calendar({
+    pickupDate,
+    returnDate,
+    activeField,
+    setPickupDate,
+    setReturnDate
+}: CalendarProps) {
 
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -188,15 +191,11 @@ export default function Reservering({ tool }: Props) {
     const [activeField, setActiveField] = useState<'pickup' | 'return' | null>(null);
 
     const formatDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
-
-    const availableStock = tool?.stockCount ?? 
-        (tool?.barcode?.filter(b => b.status?.toLowerCase().trim() === 'beschikbaar').length ?? 0);
 
     const formatPrice = (amount: string | number | undefined) => {
         if (amount === undefined || amount === null) return '€ --';
@@ -204,9 +203,45 @@ export default function Reservering({ tool }: Props) {
         return `€ ${num.toFixed(2).replace('.', ',')}`;
     };
 
-    const datesSelected = pickupDate !== '' && returnDate !== '';
+    const availableStock = tool?.stockCount ?? 
+        (tool?.barcode?.filter(b => b.status?.toLowerCase().trim() === 'beschikbaar').length ?? 0);
+
+    // Prijsberekening met week- en dagprijzen
+    const priceDetails = useMemo(() => {
+        if (!pickupDate || !returnDate) return { days: 0, weeks: 0, extraDays: 0, total: 0 };
+
+        const start = new Date(pickupDate);
+        const end = new Date(returnDate);
+        
+        const diffTime = end.getTime() - start.getTime();
+        const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+        if (totalDays <= 0) return { days: 0, weeks: 0, extraDays: 0, total: 0 };
+
+        const dayPrice = typeof tool?.detailed_price?.day === 'string' 
+            ? parseFloat(tool.detailed_price.day) 
+            : (Number(tool?.detailed_price?.day) || 0);
+            
+        const weekPrice = typeof tool?.detailed_price?.week === 'string' 
+            ? parseFloat(tool.detailed_price.week) 
+            : (Number(tool?.detailed_price?.week) || (dayPrice * 7));
+
+        const weeks = Math.floor(totalDays / 7);
+        const extraDays = totalDays % 7;
+        const totalCost = (weeks * weekPrice) + (extraDays * dayPrice);
+
+        return {
+            days: totalDays,
+            weeks: weeks,
+            extraDays: extraDays,
+            total: totalCost
+        };
+    }, [pickupDate, returnDate, tool]);
+
+    const datesSelected = pickupDate !== '' && returnDate !== '' && priceDetails.days > 0;
     const canReserve = datesSelected && availableStock > 0;
 
+    // Toastify handler
     const handleConfirmReservation = () => {
         if (!canReserve) return;
 
@@ -214,14 +249,34 @@ export default function Reservering({ tool }: Props) {
             tool_id: tool.id,
             pickupDate,
             returnDate,
+        }, {
+            onSuccess: () => {
+                toast.success('🎉 Reservering succesvol geplaatst! Veel klusplezier.', {
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: "colored",
+                });
+            },
+            onError: (errors) => {
+                toast.error('Oeps! ' + Object.values(errors).join(', '), {
+                    position: "bottom-right",
+                    theme: "colored",
+                });
+            }
         });
     };
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
             <Head title={`Reserveren - ${tool?.name || 'Product'}`} />
+            
+            {/* Toast Container */}
+            <ToastContainer />
 
-            {/* Navbar */}
             <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
                 <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.visit('/klant/producten')}>
@@ -241,15 +296,11 @@ export default function Reservering({ tool }: Props) {
             <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-10">
                 <div className="flex flex-col gap-10">
                     
-                    {/* TOP CARD: Image & Basic Info */}
+                    {/* PRODUCT INFO CARD */}
                     <div className="bg-white border border-gray-100 rounded-3xl shadow-sm p-8 md:p-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div className="aspect-[4/3] bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden flex items-center justify-center p-6">
                             {tool?.images ? (
-                                <img 
-                                    src={`${tool.images.replace('public/', '')}`} 
-                                    alt={tool.name} 
-                                    className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-500"
-                                />
+                                <img src={`${tool.images.replace('public/', '')}`} alt={tool.name} className="max-w-full max-h-full object-contain" />
                             ) : (
                                 <span className="text-gray-400 italic text-lg">Geen afbeelding</span>
                             )}
@@ -262,14 +313,10 @@ export default function Reservering({ tool }: Props) {
                                     {tool?.category?.name || 'Overig'}
                                 </div>
                             </div>
-
                             <div className="flex flex-col gap-1">
                                 <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Omschrijving:</span>
-                                <p className="text-lg text-gray-700 leading-relaxed">
-                                    {tool?.description || 'Er is geen omschrijving beschikbaar voor dit gereedschap.'}
-                                </p>
+                                <p className="text-lg text-gray-700 leading-relaxed">{tool?.description || 'Geen omschrijving beschikbaar.'}</p>
                             </div>
-
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-gray-100 pt-8 mt-4">
                                 <LabelValue label="Per dag" value={formatPrice(tool?.detailed_price?.day || tool?.price?.dayprice)} valueClassName="text-2xl font-bold text-orange-600" />
                                 <LabelValue label="Per week" value={formatPrice(tool?.detailed_price?.week)} />
@@ -278,22 +325,21 @@ export default function Reservering({ tool }: Props) {
                         </div>
                     </div>
 
-                    {/* BOTTOM CARD: Calendar & Selection */}
+                    {/* RESERVATIE CARD */}
                     <div className="bg-white border border-gray-100 rounded-3xl shadow-sm p-8 md:p-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        
                         <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden shadow-inner">
-                        <Calendar 
-                            pickupDate={pickupDate}
-                            returnDate={returnDate}
-                            activeField={activeField}
-                            setPickupDate={setPickupDate}
-                            setReturnDate={setReturnDate}
-                        />                        
-                    </div>
+                            <Calendar 
+                                pickupDate={pickupDate}
+                                returnDate={returnDate}
+                                activeField={activeField}
+                                setPickupDate={setPickupDate}
+                                setReturnDate={setReturnDate}
+                            />                        
+                        </div>
+
                         <div className="flex flex-col justify-between">
                             <div className="flex flex-col gap-8">
-                                <h3 className="text-2xl font-black text-gray-950">Reserveer nu</h3>
-                                
+                                <h3 className="text-2xl font-black text-gray-950">Wanneer heb je het nodig?</h3>
                                 <div className="grid grid-cols-1 gap-6">
                                     <div className="flex flex-col gap-2">
                                         <label className="text-sm font-bold text-gray-600 uppercase">Ophaaldatum</label>
@@ -303,7 +349,7 @@ export default function Reservering({ tool }: Props) {
                                             min={formatDate(new Date(Date.now() + 86400000))}
                                             onFocus={() => setActiveField('pickup')}
                                             onChange={(e) => setPickupDate(e.target.value)}
-                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 focus:ring-0 outline-none transition-all text-black font-medium shadow-sm"
+                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 outline-none transition-all text-black font-medium"
                                         />
                                     </div>
                                     <div className="flex flex-col gap-2">
@@ -314,32 +360,57 @@ export default function Reservering({ tool }: Props) {
                                             min={pickupDate}
                                             onFocus={() => setActiveField('return')}
                                             onChange={(e) => setReturnDate(e.target.value)}
-                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 focus:ring-0 outline-none transition-all text-black font-medium shadow-sm"
+                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 outline-none transition-all text-black font-medium"
                                         />
                                     </div>
                                 </div>
-
                                 <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
                                     <div className={`w-3 h-3 rounded-full ${availableStock > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                    <span className="text-gray-700 font-bold">
-                                        {availableStock} exemplaren direct beschikbaar
-                                    </span>
+                                    <span className="text-gray-700 font-bold">{availableStock} exemplaren direct beschikbaar</span>
                                 </div>
                             </div>
 
-                            <button 
-                                onClick={handleConfirmReservation}
-                                disabled={!canReserve}
-                                className={`w-full py-5 rounded-2xl font-black text-xl shadow-xl transition-all transform active:scale-95 mt-10
-                                    ${canReserve 
-                                        ? 'bg-slate-900 text-white hover:bg-slate-950 hover:shadow-orange-200 cursor-pointer' 
-                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-                                    }`}
-                            >
-                                {availableStock > 0 
-                                    ? (datesSelected ? 'Reservering Bevestigen' : 'Kies uw datums') 
-                                    : 'Niet op voorraad'}
-                            </button>
+                            <div className="mt-10">
+                                {datesSelected && (
+                                    <div className="bg-orange-50 border border-orange-200 p-6 rounded-2xl mb-6 animate-in fade-in slide-in-from-bottom-2">
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm text-gray-600">
+                                                <span>Totaal aantal dagen:</span>
+                                                <span className="font-bold">{priceDetails.days}</span>
+                                            </div>
+                                            <div className="flex flex-col gap-1 py-2 border-y border-orange-100 my-2">
+                                                {priceDetails.weeks > 0 && (
+                                                    <div className="flex justify-between text-gray-700 text-sm">
+                                                        <span>{priceDetails.weeks}x Weekprijs ({formatPrice(tool?.detailed_price?.week)})</span>
+                                                        <span className="font-semibold">{formatPrice(priceDetails.weeks * (Number(tool?.detailed_price?.week) || 0))}</span>
+                                                    </div>
+                                                )}
+                                                {priceDetails.extraDays > 0 && (
+                                                    <div className="flex justify-between text-gray-700 text-sm">
+                                                        <span>{priceDetails.extraDays}x Dagprijs ({formatPrice(tool?.detailed_price?.day)})</span>
+                                                        <span className="font-semibold">{formatPrice(priceDetails.extraDays * (Number(tool?.detailed_price?.day) || 0))}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-gray-900 font-bold text-lg">Totaalprijs:</span>
+                                                <span className="text-3xl font-black text-orange-600">{formatPrice(priceDetails.total)}</span>
+                                            </div>
+                                            <p className="text-[11px] text-orange-500 mt-2 italic text-right font-bold uppercase tracking-wide">
+                                                * Exclusief borg van {formatPrice(tool?.detailed_price?.deposit || 50)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                                <button 
+                                    onClick={handleConfirmReservation}
+                                    disabled={!canReserve}
+                                    className={`w-full py-5 rounded-2xl font-black text-xl shadow-xl transition-all transform active:scale-95
+                                        ${canReserve ? 'bg-slate-900 text-white hover:bg-slate-950 cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                                >
+                                    {availableStock > 0 ? (datesSelected ? 'Reservering Bevestigen' : 'Kies je datums') : 'Niet op voorraad'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
