@@ -15,10 +15,15 @@ export default function RegisterIssue({ reservations }) {
   const [message, setMessage] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
 
-  console.log('reservations', reservations);
 
   const handleSearch = () => {
-    const q = query.toLowerCase();
+    const q = query.trim().toLowerCase();
+
+    if (!q) {
+      setResults([]);
+      setHasSearched(true);
+      return;
+    }
 
     const filtered = reservations.filter((r) => {
       const fullName = `${r.user?.firstname ?? ""} ${r.user?.lastname ?? ""}`.toLowerCase();
@@ -37,6 +42,12 @@ export default function RegisterIssue({ reservations }) {
   useEffect(() => {
     setSelectedItem(null);
   }, [query]);
+
+  useEffect(() => {
+    if (selectedReservation?.barcode) {
+      setSelectedItem(selectedReservation.barcode);
+    }
+  }, [selectedReservation]);
 
   const handleIssue = async () => {
     if (!selectedReservation) return;
@@ -63,13 +74,19 @@ export default function RegisterIssue({ reservations }) {
         accessories,
       });
       toast.success("Succesvol uitgegeven!");
-      setSelectedReservation(res.reservation);
+      setSelectedReservation(res.data.reservation);
       setResults(results.map(result =>
         result.id === selectedReservation.id ? { ...result, status: 'uitgegeven' } : result
       ));
       setSelectedReservation({ ...selectedReservation, status: 'uitgegeven' });
 
+      setQuery("");
+      setResults([]);
+      setSelectedReservation(null);
       setSelectedItem(null);
+      setCondition("");
+      setAccessories("");
+      setHasSearched(false);
 
     } catch (error) {
       console.error(error);
@@ -80,11 +97,11 @@ export default function RegisterIssue({ reservations }) {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       {/* --- NAVIGATION --- */}
-      <nav className="sticky top-0 z-50 bg-slate-900 text-white">
+      <nav className="sticky top-0 z-50 bg-slate-900">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-orange-500 p-2">
-              <Wrench className="h-6 w-6 text-white" />
+              <Wrench className="h-6 w-6" />
             </div>
             <span className="text-2xl font-bold tracking-tight">
               Build<span className="text-orange-500">Rent</span>
@@ -120,7 +137,7 @@ export default function RegisterIssue({ reservations }) {
             />
             <button
               onClick={handleSearch}
-              className="bg-orange-500 text-white px-4 rounded-lg"
+              className="bg-orange-500 px-4 rounded-lg"
             >
               <Search />
             </button>
@@ -219,8 +236,14 @@ export default function RegisterIssue({ reservations }) {
               {/* ACTION */}
               <button
                 onClick={handleIssue}
-                className="bg-slate-900 text-white px-6 py-3 rounded-lg"
-              >
+                disabled={selectedReservation?.status === 'uitgegegeven'}
+                className={`px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-200
+                ${selectedReservation?.status === "uitgegeven"
+                    ? "bg-slate-400 cursor-not-allowed text-white"
+                    : "bg-slate-900 hover:bg-orange-500 cursor-pointer text-white"
+                  }`}
+                >
+                <CheckCircle className="h-5 w-5" />
                 Uitgeven
               </button>
             </>
@@ -244,57 +267,194 @@ export default function RegisterIssue({ reservations }) {
       {/* FOOTER*/}
       <footer className="border-t border-slate-800 bg-slate-950 pt-16 pb-8 text-slate-300">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-
           <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
-
             <div>
               <div className="mb-6 flex items-center gap-2">
                 <div className="rounded-lg bg-orange-500 p-1.5">
-                  <Wrench className="h-5 w-5 text-white" />
+                  <Wrench className="h-5 w-5 " />
                 </div>
-                <span className="text-xl font-bold tracking-tight text-white">
-                  Build<span className="text-orange-500">Rent</span>
+                <span className="text-xl font-bold tracking-tight ">
+                  Build
+                  <span className="text-orange-500">
+                    Rent
+                  </span>
                 </span>
               </div>
               <p className="mb-6 leading-relaxed text-slate-400">
-                Your trusted partner for professional-grade building tools and materials.
+                Your trusted partner for professional-grade
+                building tools and materials. Quality equipment,
+                exactly when you need it.
               </p>
+              <div className="flex space-x-4">
+                <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-slate-800 transition-colors hover:bg-orange-500 hover:">
+                  <span className="font-bold">fb</span>
+                </div>
+                <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-slate-800 transition-colors hover:bg-orange-500 hover:">
+                  <span className="font-bold">ig</span>
+                </div>
+                <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-slate-800 transition-colors hover:bg-orange-500 hover:">
+                  <span className="font-bold">x</span>
+                </div>
+              </div>
             </div>
 
             <div>
-              <h4 className="mb-6 text-sm font-bold tracking-wider text-white uppercase">
+              <h4 className="mb-6 text-sm font-bold tracking-wider  uppercase">
                 Equipment
               </h4>
               <ul className="space-y-3">
-                <li><a href="#" className="hover:text-orange-400">Power Tools</a></li>
-                <li><a href="#" className="hover:text-orange-400">Heavy Machinery</a></li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Power Tools
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Heavy Machinery
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Scaffolding & Ladders
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Landscaping
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Raw Materials
+                  </a>
+                </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="mb-6 text-sm font-bold tracking-wider text-white uppercase">
+              <h4 className="mb-6 text-sm font-bold tracking-wider  uppercase">
                 Company
               </h4>
               <ul className="space-y-3">
-                <li><a href="#" className="hover:text-orange-400">About Us</a></li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    How It Works
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Pro Accounts
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Locations
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Careers
+                  </a>
+                </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="mb-6 text-sm font-bold tracking-wider text-white uppercase">
+              <h4 className="mb-6 text-sm font-bold tracking-wider  uppercase">
                 Support
               </h4>
               <ul className="space-y-3">
-                <li><a href="#" className="hover:text-orange-400">Contact</a></li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Contact Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    FAQ
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Rental Policies
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="transition-colors hover:text-orange-400"
+                  >
+                    Report an Issue
+                  </a>
+                </li>
               </ul>
             </div>
-
           </div>
 
-          <div className="border-t border-slate-800 pt-8 text-sm text-slate-500 text-center">
-            © {new Date().getFullYear()} BuildRent
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 text-sm text-slate-500 md:flex-row">
+            <p>
+              © {new Date().getFullYear()} BuildRent Services. All
+              rights reserved.
+            </p>
+            <div className="flex gap-6">
+              <a
+                href="#"
+                className="transition-colors hover:"
+              >
+                Privacy Policy
+              </a>
+              <a
+                href="#"
+                className="transition-colors hover:"
+              >
+                Terms of Service
+              </a>
+            </div>
           </div>
-
         </div>
       </footer>
 
