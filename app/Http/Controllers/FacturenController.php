@@ -1,22 +1,66 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Invoice;
 use Inertia\Inertia;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class FacturenController extends Controller
 {
     public function index()
-    {        
-        $facturen = [
-            ['id' => 1, 'datum' => '12-10-2023', 'omschrijving' => 'Hamer (sterke hamer)', 'bedrag' => '€ 15,00', 'status' => 'Betaald'],
-            ['id' => 2, 'datum' => '14-10-2023', 'omschrijving' => 'Schroevendraaier', 'bedrag' => '€ 8,50', 'status' => 'Openstaand'],
-            ['id' => 3, 'datum' => '15-10-2023', 'omschrijving' => 'Boormachine', 'bedrag' => '€ 120,00', 'status' => 'Geannuleerd'],
-        ];
+    {
+        $invoices = Invoice::where('user_id', Auth::id())
+            ->with(['reservation.barcode.tool.price']) 
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $mappedFacturen = $invoices->map(function ($invoice) {
+            $reservation = $invoice->reservation;
+            
+            if (!$reservation || !$reservation->barcode || !$reservation->barcode->tool) {
+                return $this->formatData($invoice, "Onbekend product", 0);
+            }
+
+            $tool = $reservation->barcode->tool;
+            $price = $tool->price->first(); 
+
+            if (!$price) {
+                return $this->formatData($invoice, $tool->name, 0);
+            }
+
+            $start = Carbon::parse($reservation->start_date);
+            $end = Carbon::parse($reservation->end_date);
+            $totalDays = max(1, $start->diffInDays($end));
+            
+            $weeks = floor($totalDays / 7);
+            $remainingDays = $totalDays % 7;
+
+            $totalAmount = ($weeks * $price->weekprice) + ($remainingDays * $price->dayprice);
+
+            return $this->formatData(
+                $invoice, 
+                $tool->name, 
+                $totalAmount
+            );
+        });
 
         return Inertia::render('klant/facturen', [
-            'facturen' => $facturen
+            'facturen' => $mappedFacturen
         ]);
+    }
+
+    private function formatData($invoice, $omschrijving, $bedrag)
+    {
+        return [
+            'id'           => $invoice->id,
+            'datum'        => $invoice->created_at->format('d-m-Y'),
+            'omschrijving' => $omschrijving,
+            'bedrag'       => '€ ' . number_format($bedrag, 2, ',', '.'),
+            'status'       => $invoice->status ?? 'Openstaand', 
+            'pdf_path'     => $invoice->filepath,
+        ];
     }
 }
