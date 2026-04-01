@@ -8,6 +8,14 @@ interface Barcode {
     status: string;
 }
 
+interface Reservation {
+    id: number;
+    tool_id: number;
+    barcode_id: number;
+    pickup_date: string;
+    return_date: string;
+}
+
 interface ToolPrice {
     dayprice?: string | number;
     day?: string | number;
@@ -34,6 +42,7 @@ interface Tool {
 
 interface Props {
     tool: Tool;
+    existingReservations: Reservation[];
 }
 
 function LabelValue({ label, value, valueClassName = "text-lg text-gray-950 font-bold" }: { label: string, value: string | number, valueClassName?: string }) {
@@ -51,6 +60,8 @@ interface CalendarProps {
     activeField: 'pickup' | 'return' | null;
     setPickupDate: React.Dispatch<React.SetStateAction<string>>;
     setReturnDate: React.Dispatch<React.SetStateAction<string>>;
+    existingReservations: Reservation[];
+    totalStock: number;
 }
 
 function Calendar({
@@ -58,7 +69,9 @@ function Calendar({
     returnDate,
     activeField,
     setPickupDate,
-    setReturnDate
+    setReturnDate,
+    existingReservations,
+    totalStock
 }: CalendarProps) {
 
     const today = new Date();
@@ -92,65 +105,100 @@ function Calendar({
         setCurrentDate(new Date(year, month + 1, 1));
     };
 
+    const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const getAvailableForRange = (startStr: string, endStr: string) => {
+        if (totalStock === 0) return 0;
+        
+        const busyBarcodes = new Set();
+
+        existingReservations.forEach(res => {
+            const resStart = res.pickup_date;
+            const resEnd = res.return_date;
+
+            if (resStart <= endStr && resEnd >= startStr) {
+                busyBarcodes.add(res.barcode_id);
+            }
+        });
+
+        const availableCount = totalStock - busyBarcodes.size;
+        return availableCount < 0 ? 0 : availableCount;
+    };
+
+    const handleClick = (formatted: string, isSelectable: boolean) => {
+        if (!isSelectable) return;
+
+        if (activeField === 'pickup' || (!pickupDate && !activeField)) {
+            setPickupDate(formatted);
+
+            if (returnDate && (new Date(returnDate) < new Date(formatted) || getAvailableForRange(formatted, returnDate) <= 0)) {
+                setReturnDate('');
+            }
+        } else if (activeField === 'return' || (pickupDate && !activeField)) {
+            if (!pickupDate || new Date(formatted) < new Date(pickupDate)) return;
+            setReturnDate(formatted);
+        }
+    };
+
     const days = [];
 
     for (let i = 0; i < firstDay; i++) {
         days.push(<div key={`empty-${i}`} />);
     }
 
-    const formatDate = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-
-        return `${year}-${month}-${day}`;
-    };
-
-    const handleClick = (day: number) => {
-        const selected = new Date(year, month, day);
-
-        if (selected < tomorrow) return;
-
-        const formatted = formatDate(selected);
-
-        if (activeField === 'pickup') {
-            setPickupDate(formatted);
-
-            if (returnDate && new Date(returnDate) < selected) {
-                setReturnDate('');
-            }
-        }
-
-        if (activeField === 'return') {
-            if (!pickupDate) return;
-            if (selected < new Date(pickupDate)) return;
-
-            setReturnDate(formatted);
-        }
-    };
+    const maxReservationDate = new Date();
+    maxReservationDate.setDate(maxReservationDate.getDate() + 30);
 
     for (let d = 1; d <= daysInMonth; d++) {
         const dateObj = new Date(year, month, d);
         const formatted = formatDate(dateObj);
 
         const isPast = dateObj < tomorrow;
+        
+        const isTooFar = dateObj > maxReservationDate; 
+        
+        const dailyAvailable = getAvailableForRange(formatted, formatted);
+        
         const isPickup = pickupDate === formatted;
         const isReturn = returnDate === formatted;
+
+        let isSelectable = false;
+        if (!isPast && !isTooFar) {
+            if (activeField === 'pickup' || !pickupDate) {
+                isSelectable = dailyAvailable > 0;
+            } else if ((activeField === 'return' || pickupDate) && formatted >= pickupDate) {
+                isSelectable = getAvailableForRange(pickupDate, formatted) > 0;
+            }
+        }
 
         days.push(
             <div
                 key={d}
-                onClick={() => handleClick(d)}
-                className={`h-10 flex items-center justify-center rounded-lg text-sm font-semibold transition
-                    ${isPast 
-                        ? 'bg-red-100 text-red-400 cursor-not-allowed' 
-                        : 'bg-green-50 text-green-800 cursor-pointer hover:bg-green-100'
+                onClick={() => handleClick(formatted, isSelectable)}
+                className={`h-12 flex flex-col items-center justify-center rounded-lg text-sm font-semibold transition
+                    ${(isPast || isTooFar)
+                        ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
+                        : (!isSelectable 
+                            ? 'bg-red-50 text-red-300 cursor-not-allowed' 
+                            : 'bg-green-50 text-green-800 cursor-pointer hover:bg-green-100'
+                        )
                     }
-                    ${isPickup ? 'bg-green-300 text-green-900 ring-2 ring-green-500' : ''}
-                    ${isReturn ? 'bg-red-300 text-red-900 ring-2 ring-red-500' : ''}
+                    ${isPickup ? '!bg-green-400 !text-green-950 ring-2 ring-green-600' : ''}
+                    ${isReturn ? '!bg-red-400 !text-red-950 ring-2 ring-red-600' : ''}
                 `}
             >
-                {d}
+                <span>{d}</span>
+                {/* ✅ Toon alleen de voorraad als de dag binnen de boekbare range valt */}
+                {!isPast && !isTooFar && (
+                    <span className="text-[9px] font-normal leading-tight opacity-80">
+                        {dailyAvailable} vrij
+                    </span>
+                )}
             </div>
         );
     }
@@ -158,7 +206,7 @@ function Calendar({
     return (
         <div className="flex flex-col gap-5 p-6 bg-white">
             <div className="flex items-center justify-between">
-                <button onClick={prevMonth} className="text-gray-400 hover:text-orange-500">
+                <button onClick={prevMonth} className="text-gray-400 hover:text-orange-500 font-bold p-2">
                     ←
                 </button>
 
@@ -166,7 +214,7 @@ function Calendar({
                     {monthNames[month]} {year}
                 </span>
 
-                <button onClick={nextMonth} className="text-gray-400 hover:text-orange-500">
+                <button onClick={nextMonth} className="text-gray-400 hover:text-orange-500 font-bold p-2">
                     →
                 </button>
             </div>
@@ -184,10 +232,10 @@ function Calendar({
     );
 }
 
-export default function Reservering({ tool }: Props) {
+export default function Reservering({ tool, existingReservations = [] }: Props) {
     const [pickupDate, setPickupDate] = useState<string>('');
     const [returnDate, setReturnDate] = useState<string>('');
-    const [activeField, setActiveField] = useState<'pickup' | 'return' | null>(null);
+    const [activeField, setActiveField] = useState<'pickup' | 'return' | null>('pickup');
 
     const formatDate = (date: Date) => {
         const year = date.getFullYear();
@@ -196,14 +244,65 @@ export default function Reservering({ tool }: Props) {
         return `${year}-${month}-${day}`;
     };
 
+    const todayStr = formatDate(new Date());
+    const maxReservationDate = new Date();
+    maxReservationDate.setDate(maxReservationDate.getDate() + 30);
+    const maxDateStr = formatDate(maxReservationDate);
+
     const formatPrice = (amount: string | number | undefined) => {
         if (amount === undefined || amount === null) return '€ --';
         const num = typeof amount === 'string' ? parseFloat(amount) : amount;
         return `€ ${num.toFixed(2).replace('.', ',')}`;
     };
 
-    const availableStock = tool?.stockCount ?? 
-        (tool?.barcode?.filter(b => b.status?.toLowerCase().trim() === 'beschikbaar').length ?? 0);
+    const totalStock = tool?.barcode?.length || tool?.stockCount || 0;
+
+    const isAvailableInRange = useMemo(() => {
+        if (!pickupDate || !returnDate || totalStock === 0) return true;
+
+        const overlappingBarcodes = new Set(
+            existingReservations
+                .filter(r => r.pickup_date <= returnDate && r.return_date >= pickupDate)
+                .map(r => r.barcode_id)
+        );
+
+        return (totalStock - overlappingBarcodes.size) > 0;
+    }, [pickupDate, returnDate, existingReservations, totalStock]);
+
+    const stockForSelectedRange = useMemo(() => {
+        if (!pickupDate || !returnDate || totalStock === 0) return 0;
+
+        const start = new Date(pickupDate);
+        const end = new Date(returnDate);
+        let minAvailable = totalStock;
+
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const currentDayStr = formatDate(d);
+            
+            const busyOnThisDay = new Set(
+                existingReservations
+                    .filter(r => r.pickup_date <= currentDayStr && r.return_date >= currentDayStr)
+                    .map(r => r.barcode_id)
+            ).size;
+
+            const availableOnThisDay = totalStock - busyOnThisDay;
+            
+            if (availableOnThisDay < minAvailable) {
+                minAvailable = availableOnThisDay;
+            }
+        }
+
+        return minAvailable < 0 ? 0 : minAvailable;
+    }, [pickupDate, returnDate, existingReservations, totalStock]);
+
+    const currentlyAvailable = totalStock - new Set(
+        existingReservations
+            .filter(r => {
+                const todayStr = formatDate(new Date());
+                return r.pickup_date <= todayStr && r.return_date >= todayStr;
+            })
+            .map(r => r.barcode_id)
+    ).size;
 
     const priceDetails = useMemo(() => {
         if (!pickupDate || !returnDate) return { days: 0, weeks: 0, extraDays: 0, total: 0 };
@@ -237,9 +336,8 @@ export default function Reservering({ tool }: Props) {
     }, [pickupDate, returnDate, tool]);
 
     const datesSelected = pickupDate !== '' && returnDate !== '' && priceDetails.days > 0;
-    const canReserve = datesSelected && availableStock > 0;
+    const canReserve = datesSelected && isAvailableInRange;
 
-    // Toastify handler
     const handleConfirmReservation = () => {
         if (!canReserve) return;
 
@@ -249,8 +347,11 @@ export default function Reservering({ tool }: Props) {
             returnDate,
         }, {
             onSuccess: () => {
+                setPickupDate('');
+                setReturnDate('');
+                setActiveField('pickup');
                 toast.success('🎉 Reservering succesvol geplaatst! Veel klusplezier.', {
-                    position: "bottom-right",
+                    position: "top-right",
                     autoClose: 5000,
                     hideProgressBar: false,
                     closeOnClick: true,
@@ -261,7 +362,7 @@ export default function Reservering({ tool }: Props) {
             },
             onError: (errors) => {
                 toast.error('Oeps! ' + Object.values(errors).join(', '), {
-                    position: "bottom-right",
+                    position: "top-right",
                     theme: "colored",
                 });
             }
@@ -332,6 +433,8 @@ export default function Reservering({ tool }: Props) {
                                 activeField={activeField}
                                 setPickupDate={setPickupDate}
                                 setReturnDate={setReturnDate}
+                                existingReservations={existingReservations}
+                                totalStock={totalStock}
                             />                        
                         </div>
 
@@ -345,6 +448,7 @@ export default function Reservering({ tool }: Props) {
                                             type="date" 
                                             value={pickupDate}
                                             min={formatDate(new Date(Date.now() + 86400000))}
+                                            max={maxDateStr}
                                             onFocus={() => setActiveField('pickup')}
                                             onChange={(e) => setPickupDate(e.target.value)}
                                             className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 outline-none transition-all text-black font-medium"
@@ -356,6 +460,7 @@ export default function Reservering({ tool }: Props) {
                                             type="date" 
                                             value={returnDate}
                                             min={pickupDate}
+                                            max={maxDateStr}
                                             onFocus={() => setActiveField('return')}
                                             onChange={(e) => setReturnDate(e.target.value)}
                                             className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 outline-none transition-all text-black font-medium"
@@ -363,13 +468,30 @@ export default function Reservering({ tool }: Props) {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                    <div className={`w-3 h-3 rounded-full ${availableStock > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                    <span className="text-gray-700 font-bold">{availableStock} exemplaren direct beschikbaar</span>
+                                    {/* Bolletje kleur op basis van selectie of nu */}
+                                    <div className={`w-3 h-3 rounded-full 
+                                        ${(datesSelected ? stockForSelectedRange : currentlyAvailable) > 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                                    ></div>
+                                    
+                                    <span className="text-gray-700 font-bold">
+                                        {datesSelected ? (
+                                            stockForSelectedRange > 0 
+                                                ? `${stockForSelectedRange} exemplaren beschikbaar voor deze periode`
+                                                : `Geen exemplaren beschikbaar voor deze periode`
+                                        ) : (
+                                            `${currentlyAvailable} exemplaren op dit moment in voorraad`
+                                        )}
+                                    </span>
                                 </div>
+                                {!isAvailableInRange && pickupDate && returnDate && (
+                                    <div className="p-4 bg-red-100 border border-red-200 text-red-600 font-bold rounded-xl text-center">
+                                        Let op: In deze exacte periode is er geen aaneengesloten exemplaar beschikbaar. Verander je data.
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-10">
-                                {datesSelected && (
+                                {datesSelected && isAvailableInRange && (
                                     <div className="bg-orange-50 border border-orange-200 p-6 rounded-2xl mb-6 animate-in fade-in slide-in-from-bottom-2">
                                         <div className="space-y-2">
                                             <div className="flex justify-between text-sm text-gray-600">
@@ -406,7 +528,7 @@ export default function Reservering({ tool }: Props) {
                                     className={`w-full py-5 rounded-2xl font-black text-xl shadow-xl transition-all transform active:scale-95
                                         ${canReserve ? 'bg-slate-900 text-white hover:bg-slate-950 cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                                 >
-                                    {availableStock > 0 ? (datesSelected ? 'Reservering Bevestigen' : 'Kies je datums') : 'Niet op voorraad'}
+                                    {totalStock > 0 ? (datesSelected ? (isAvailableInRange ? 'Reservering Bevestigen' : 'Kies andere datums') : 'Kies je datums') : 'Niet op voorraad'}
                                 </button>
                             </div>
                         </div>
