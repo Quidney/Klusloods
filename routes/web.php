@@ -6,6 +6,8 @@ use App\Http\Controllers\CategorieController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\FacturenController;
+
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
@@ -28,6 +30,7 @@ Route::prefix('admin')->group(function(){
     Route::get('/stats',[StatController::class,'index'])->name('stats');
 });
     
+Route::get('/klant/facturen', [FacturenController::class, 'index'])->name('klant.facturen');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');

@@ -23,5 +23,14 @@ class ReservationSeeder extends Seeder
         'returntime' => now()->addWeek(),
         'status' => 'gereserveerd'
         ]);
+
+        Reservation::create([
+        'id' => 2,
+        'user_id' => 1,
+        'barcode_id' => 1,
+        'pickuptime' => now(),
+        'returntime' => now()->addWeek(),
+        'status' => 'gereserveerd'
+        ]);
     }
 }
