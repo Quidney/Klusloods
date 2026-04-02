@@ -9,7 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Maintenance extends Model
 {
     use HasFactory;
-    public function barcodes() :BelongsTo
+    protected $fillable = [
+    'barcode_id',
+    'date',
+    'description',
+    'status',
+    'cost',
+    ];
+    public function barcode() :BelongsTo
     {
         return $this->belongsTo(Barcode::class);
     }

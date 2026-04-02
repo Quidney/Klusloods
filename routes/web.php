@@ -51,7 +51,7 @@ Route::prefix('medewerker')->group(function(){
     Route::patch('/retour/{reservation}',[EmployeeController::class, 'updateReturn']);
     Route::get('/onderhoud-registreren',[EmployeeController::class, 'indexMaintenance']);
     Route::post('/onderhoud', [EmployeeController::class, 'saveMaintenance']);
-    Route::patch('/onderhoud/{id}',[EmployeeController::class, 'completeMaintenance']);
+    Route::patch('/onderhoud/{maintenance}/complete',[EmployeeController::class, 'completeMaintenance']);
 
 });
 
