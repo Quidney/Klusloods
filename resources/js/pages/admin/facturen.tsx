@@ -17,11 +17,11 @@ interface InvoiceRow {
 
 export default function AdminFacturen({ invoices }: { invoices: InvoiceRow[] }) {
     return (
-        <div className="min-h-screen bg-slate-50 p-6 md:p-10">
+        <div className="min-h-screen bg-slate-50">
             <Head title="Factuuroverzicht" />
             <RoleToolbar role="beheerder" />
 
-            <div className="mx-auto max-w-7xl">
+            <div className="mx-auto max-w-7xl px-6 py-6 md:px-10 md:py-10">
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold text-slate-900">Factuuroverzicht</h1>
                     <p className="text-slate-500">Overzicht van alle gegenereerde facturen.</p>

@@ -321,19 +321,6 @@ export default function Reservering({ tool, existingReservations = [], editReser
             <Head title={`${editReservation ? 'Wijzigen' : 'Reserveren'} - ${tool?.name || 'Product'}`} />
             <ToastContainer />
 
-            <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
-                <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.visit('/klant/producten')}>
-                        <span className="text-orange-500 text-3xl">🛠️</span>
-                        <span className="text-3xl font-extrabold text-gray-950 tracking-tight">Klusloods</span>
-                    </div>
-                    <button onClick={() => window.history.back()} className="text-gray-500 hover:text-orange-500 font-bold flex items-center gap-2 transition">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7 7-7" /></svg>
-                        Terug
-                    </button>
-                </div>
-            </nav>
-
             <RoleToolbar role="klant" />
 
             <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-10">

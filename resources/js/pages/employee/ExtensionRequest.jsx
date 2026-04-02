@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, CheckCircle, AlertTriangle, Wrench, User, Menu, Calendar, Clock, RefreshCw } from "lucide-react";
+import { Search, CheckCircle, AlertTriangle, Wrench, Calendar, Clock, RefreshCw } from "lucide-react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -78,30 +78,6 @@ export default function ExtensionRequest({ reservations }) {
 
     return (
         <div className="flex flex-col min-h-screen">
-            {/* --- NAVIGATION --- */}
-            <nav className="sticky top-0 z-50 bg-slate-900">
-                <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
-                    <div className="flex items-center gap-2">
-                        <div className="rounded-lg bg-orange-500 p-2">
-                            <Wrench className="h-6 w-6" />
-                        </div>
-                        <span className="text-2xl font-bold tracking-tight">
-                            Build<span className="text-orange-500">Rent</span>
-                        </span>
-                        <span className="ml-4 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-xs font-bold text-orange-400">
-                            BEHEERDER
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <button className="transition-colors hover:text-orange-500">
-                            <User className="h-5 w-5" />
-                        </button>
-                        <button className="md:hidden">
-                            <Menu className="h-6 w-6" />
-                        </button>
-                    </div>
-                </div>
-            </nav>
             <RoleToolbar role="medewerker" />
             <main className="flex-grow bg-slate-50 py-12">
                 <div className="mx-auto max-w-3xl px-4">
@@ -401,7 +377,7 @@ export default function ExtensionRequest({ reservations }) {
 
                     <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 text-sm text-slate-500 md:flex-row">
                         <p>
-                            © {new Date().getFullYear()} BuildRent Services. All
+                            © {new Date().getFullYear()} Klusloods. Alle
                             rights reserved.
                         </p>
                         <div className="flex gap-6">
