@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head } from '@inertiajs/react';
+import RoleToolbar from '@/components/role-toolbar';
 
 interface Factuur {
     id: number;
@@ -52,6 +53,8 @@ export default function Facturen({ facturen = [] }: Props) {
                     <span>Klusloods</span>
                 </div>
             </nav>
+
+            <RoleToolbar role="klant" />
 
             <main className="flex-grow max-w-5xl mx-auto py-10 px-6 w-full">
                 <div className="flex justify-between items-end mb-6">

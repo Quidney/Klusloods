@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
+import RoleToolbar from '@/components/role-toolbar';
 
 interface ToolPrice {
     dayprice: string | number;
@@ -70,6 +71,8 @@ export default function Producten({ tools }: Props) {
                     </div>
                 </div>
             </nav>
+
+            <RoleToolbar role="klant" />
 
             <main className="flex-grow max-w-[1600px] mx-auto w-full px-6 py-10">
                 

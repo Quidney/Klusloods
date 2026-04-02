@@ -3,6 +3,7 @@ import { Search, CheckCircle, AlertTriangle, Wrench, User, Menu } from "lucide-r
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import RoleToolbar from '@/components/role-toolbar';
 
 export default function RegisterMaintenance({ initialBarcodes, initialMaintenances }) {
     const [barcodes, setBarcodes] = useState(initialBarcodes || []);
@@ -100,6 +101,8 @@ export default function RegisterMaintenance({ initialBarcodes, initialMaintenanc
                     </div>
                 </div>
             </nav>
+
+            <RoleToolbar role="medewerker" />
 
             <main className="flex-grow p-5 ">
                 <form onSubmit={handleSubmit} className="space-y-4 p-5 bg-slate-50 rounded-xl border border-slate-200 mb-8">

@@ -3,6 +3,7 @@ import { Search, CheckCircle, AlertTriangle, Wrench, User, Menu } from "lucide-r
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import RoleToolbar from '@/components/role-toolbar';
 
 
 export default function RegisterIssue({ reservations }) {
@@ -123,6 +124,8 @@ export default function RegisterIssue({ reservations }) {
           </div>
         </div>
       </nav>
+
+      <RoleToolbar role="medewerker" />
 
       <main className="flex-grow">
         <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow">

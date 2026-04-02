@@ -11,6 +11,14 @@ import {
 
 type WelcomeUser = {
   name: string;
+  role?: 'klant' | 'medewerker' | 'beheerder' | string;
+};
+
+const getRoleFirstPage = (role?: WelcomeUser['role']) => {
+  if (role === 'klant') return '/klant/producten';
+  if (role === 'medewerker') return '/medewerker/uitgifte-registreren';
+  if (role === 'beheerder') return '/admin/category';
+  return '/dashboard';
 };
 
 const Navbar = ({ user }: { user?: WelcomeUser | null }) => {
@@ -56,11 +64,15 @@ const Navbar = ({ user }: { user?: WelcomeUser | null }) => {
               <>
                 <div className="flex flex-col items-end">
                   <span className="text-xs text-slate-400">Ingelogd als</span>
-                  <div className="flex items-center gap-2 text-sm font-medium text-white">
+                  <Link href={getRoleFirstPage(user.role)} className="flex items-center gap-2 text-sm font-medium text-white hover:text-orange-500 transition-colors cursor-pointer">
                     <User className="w-4 h-4" />
                     <span>{user.name}</span>
-                  </div>
+                  </Link>
                 </div>
+                <div className="h-8 w-px bg-slate-700"></div>
+                <Link href={getRoleFirstPage(user.role)} className="flex items-center gap-2 hover:text-orange-500 transition-colors cursor-pointer">
+                  <span className="font-medium">Dashboard</span>
+                </Link>
                 <div className="h-8 w-px bg-slate-700"></div>
                 <Link href={logout()} as="button" className="flex items-center gap-2 hover:text-orange-500 transition-colors cursor-pointer">
                   <span className="font-medium">Uitloggen</span>
@@ -101,7 +113,8 @@ const Navbar = ({ user }: { user?: WelcomeUser | null }) => {
             <a href="#" className="block py-2 text-slate-300 hover:text-white">Projects & Guides</a>
             {user ? (
               <>
-                <div className="py-2 text-slate-300">Ingelogd als {user.name}</div>
+                <Link href={getRoleFirstPage(user.role)} className="block py-2 text-slate-300 hover:text-white">Ingelogd als {user.name}</Link>
+                <Link href={getRoleFirstPage(user.role)} className="block py-2 text-slate-300 hover:text-white">Dashboard</Link>
                 <Link href={logout()} className="block py-2 text-slate-300 hover:text-white">Uitloggen</Link>
               </>
             ) : (

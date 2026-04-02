@@ -20,6 +20,7 @@ import EditProductModal from './modals/editProduct';
 import AddProductModal from './modals/addProduct';
 import formatCurrency from '@/hooks/formatCurrency';
 import SubProducts from './modals/subProducts';
+import RoleToolbar from '@/components/role-toolbar';
 
 /**
  * the product edit page
@@ -164,6 +165,8 @@ const Product = ({ products, categories,max_page}) => {
                         </div>
                     </div>
                 </nav>
+
+                <RoleToolbar role="beheerder" />
 
                 <div className="mx-auto max-w-7xl px-4 py-8">
                     <div className="flex flex-col gap-8 lg:flex-row">

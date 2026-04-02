@@ -13,6 +13,7 @@ import {
 import { Transition } from '@headlessui/react';
 import { router, useForm } from '@inertiajs/react';
 import AddCategory from './modals/addCategory';
+import RoleToolbar from '@/components/role-toolbar';
 
 const CategoriePage = ({ categories, max_page }) => {
     const searchparm = Object.fromEntries(
@@ -76,6 +77,8 @@ const CategoriePage = ({ categories, max_page }) => {
                         </div>
                     </div>
                 </nav>
+
+                <RoleToolbar role="beheerder" />
 
                 <div className="mx-auto max-w-7xl px-4 py-8">
                     <div className="flex flex-col gap-8 lg:flex-row">

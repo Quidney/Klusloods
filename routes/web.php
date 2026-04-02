@@ -37,7 +37,7 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::prefix('admin')->group(function(){
+Route::middleware(['auth', 'role:beheerder'])->prefix('admin')->group(function(){
     Route::get('/category',[CategorieController::class,'index'])->name('category');
     Route::put('/category',[CategorieController::class,'update'])->name('category.update');
     Route::delete('/category/{id}',[CategorieController::class,'destroy'])->name('category.destroy');
@@ -52,29 +52,31 @@ Route::prefix('admin')->group(function(){
     Route::put('users',[UserController::class,'update'])->name('users.update');
     Route::get('/stats',[StatController::class,'index'])->name('stats');
 });
-    
-Route::get('/klant/facturen', [FacturenController::class, 'index'])->name('klant.facturen');
 
-Route::get('/klant/producten',[ReserveringController::class,'index'])->name('reservering.index'); 
-Route::get('/klant/product/{id}', [ReserveringController::class, 'show'])->name('reservering.show');
-Route::post('/klant/reserveren', [ReserveringController::class, 'store']);
+Route::middleware(['auth', 'role:klant'])->group(function () {
+    Route::get('/klant/facturen', [FacturenController::class, 'index'])->name('klant.facturen');
 
-Route::get('/klant/reserveringen', [ReserveringController::class, 'reserveringen'])->name('reservering.reserveringen');
-Route::patch('/reserveringen/{reservation}/cancel', [ReserveringController::class, 'cancel'])->name('reserveringen.cancel');
-Route::get('/klant/reserveringen/{id}', [ReserveringController::class, 'show'])->name('reservering.show_detail');
-Route::patch('/klant/reserveringen/{reservation}', [ReserveringController::class, 'update'])->name('reservering.update');
+    Route::get('/klant/producten',[ReserveringController::class,'index'])->name('reservering.index'); 
+    Route::get('/klant/product/{id}', [ReserveringController::class, 'show'])->name('reservering.show');
+    Route::post('/klant/reserveren', [ReserveringController::class, 'store']);
+
+    Route::get('/klant/reserveringen', [ReserveringController::class, 'reserveringen'])->name('reservering.reserveringen');
+    Route::patch('/reserveringen/{reservation}/cancel', [ReserveringController::class, 'cancel'])->name('reserveringen.cancel');
+    Route::get('/klant/reserveringen/{id}', [ReserveringController::class, 'show'])->name('reservering.show_detail');
+    Route::patch('/klant/reserveringen/{reservation}', [ReserveringController::class, 'update'])->name('reservering.update');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 });
-Route::prefix('medewerker')->group(function(){
-    Route::get('/uitgifte-registreren',[EmployeeController::class, 'index']);
-    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'update']);
-    Route::get('/verlenging-aanvragen',[EmployeeController::class, 'indexExtended']);
+Route::middleware(['auth', 'role:medewerker'])->prefix('medewerker')->group(function(){
+    Route::get('/uitgifte-registreren',[EmployeeController::class, 'indexIssue'])->name('medewerker.uitgifte-registreren');
+    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'updateIssue']);
+    Route::get('/verlenging-aanvragen',[EmployeeController::class, 'indexExtended'])->name('medewerker.verlenging-aanvragen');
     Route::patch('/reservations/{reservation}/extend',[EmployeeController::class, 'extendReservation']);
-    Route::get('/retour-registreren',[EmployeeController::class, 'indexReturn']);
+    Route::get('/retour-registreren',[EmployeeController::class, 'indexReturn'])->name('medewerker.retour-registreren');
     Route::patch('/retour/{reservation}',[EmployeeController::class, 'updateReturn']);
-    Route::get('/onderhoud-registreren',[EmployeeController::class, 'indexMaintenance']);
+    Route::get('/onderhoud-registreren',[EmployeeController::class, 'indexMaintenance'])->name('medewerker.onderhoud-registreren');
     Route::post('/onderhoud', [EmployeeController::class, 'saveMaintenance']);
     Route::patch('/onderhoud/{maintenance}/complete',[EmployeeController::class, 'completeMaintenance']);
 
