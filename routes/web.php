@@ -14,6 +14,8 @@ use App\Http\Controllers\ReserveringController;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
+    $dayOrder = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
         'categories' => \App\Models\Category::withCount('tool')->get()->map(function ($category) {
@@ -35,6 +37,18 @@ Route::get('/', function () {
                 'available' => true,
             ];
         }),
+        'openingHours' => \App\Models\Openinghour::query()
+            ->get()
+            ->sortBy(fn ($hour) => array_search($hour->day, $dayOrder, true))
+            ->values()
+            ->map(function ($hour) {
+                return [
+                    'day' => $hour->day,
+                    'status' => $hour->status,
+                    'startime' => $hour->startime,
+                    'endtime' => $hour->endtime,
+                ];
+            }),
     ]);
 })->name('home');
 
