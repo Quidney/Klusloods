@@ -17,7 +17,7 @@ return new class extends Migration
             $table->dateTime('actualreturntime');
             $table->enum('status',['in orde','schoonmaak nodig','schade','defect']);
             $table->text('notes')->nullable();
-            $table->float('cost',9.2);
+            $table->float('cost',9.2)->nullable();  
             $table->timestamps();
         });
     }

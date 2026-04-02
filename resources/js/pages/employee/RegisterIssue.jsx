@@ -87,6 +87,9 @@ export default function RegisterIssue({ reservations }) {
       setCondition("");
       setAccessories("");
       setHasSearched(false);
+      setTimeout(function() {
+    window.location.reload();
+}, 3000);
 
     } catch (error) {
       console.error(error);

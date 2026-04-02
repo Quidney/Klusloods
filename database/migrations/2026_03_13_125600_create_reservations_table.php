@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('barcode_id')->index()->constrained('barcodes');
             $table->dateTime('pickuptime');
             $table->dateTime('returntime');
-            $table->enum('status',['gereserveerd','geannuleerd','uitgegeven']); 
+            $table->enum('status',['gereserveerd','geannuleerd','uitgegeven','afgerond']); 
             $table->timestamps();
         });
     }
