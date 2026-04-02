@@ -50,7 +50,9 @@ export default function Reserveringen({ reserveringen }: { reserveringen: Reserv
     };
 
     const handleRowClick = (reservering: Reservering) => {
-        router.visit(`/klant/product/${reservering.tool_id}?edit=${reservering.id}`);
+        if (reservering.status.toLowerCase() === 'gereserveerd') {
+            router.visit(`/klant/product/${reservering.tool_id}?edit=${reservering.id}`);
+        }
     };
 
     const confirmAnnulering = () => {
