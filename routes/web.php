@@ -38,6 +38,9 @@ Route::get('/klant/producten',[ReserveringController::class,'index'])->name('res
 Route::get('/klant/product/{id}', [ReserveringController::class, 'show'])->name('reservering.show');
 Route::post('/klant/reserveren', [ReserveringController::class, 'store']);
 
+Route::get('/klant/reserveringen', [ReserveringController::class, 'reserveringen'])->name('reservering.reserveringen');
+Route::patch('/reserveringen/{reservation}/cancel', [ReserveringController::class, 'cancel'])->name('reserveringen.cancel');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 });

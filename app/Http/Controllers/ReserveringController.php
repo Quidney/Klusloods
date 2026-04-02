@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Barcode;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ReserveringController extends Controller
 {
@@ -89,5 +90,72 @@ class ReserveringController extends Controller
         }
 
         return back()->with('success', 'Reservering succesvol geplaatst!');
+    }
+
+    public function reserveringen()
+    {
+        $now = Carbon::now();
+
+        $allReservations = Reservation::where('user_id', Auth::id())
+            ->with(['barcode.tool.price'])
+            ->get();
+
+        $upcoming = $allReservations->filter(function ($res) use ($now) {
+            $pickuptime = Carbon::parse($res->pickuptime);
+            return strtolower($res->status) !== 'geannuleerd' && $pickuptime->gt($now);
+        })->sortBy('pickuptime');
+
+        $past = $allReservations->filter(function ($res) use ($now) {
+            $pickuptime = Carbon::parse($res->pickuptime);
+            return strtolower($res->status) !== 'geannuleerd' && $pickuptime->lte($now);
+        })->sortByDesc('pickuptime');
+
+        $cancelled = $allReservations->filter(function ($res) {
+            return strtolower($res->status) === 'geannuleerd';
+        })->sortByDesc('pickuptime');
+
+        $reserveringen = $upcoming->concat($past)->concat($cancelled)->map(function ($res) {
+            $start = Carbon::parse($res->pickuptime);
+            $end = Carbon::parse($res->returntime);
+            
+            $days = $start->diffInDays($end) + 1;
+            $priceRecord = $res->barcode->tool->price->sortByDesc('created_at')->first();
+            $dayPrice = $priceRecord->dayprice ?? 0;
+
+            return [
+                'id' => $res->id,
+                'productnaam' => $res->barcode->tool->name,
+                'periode' => $start->format('d-m-Y') . ' t/m ' . $end->format('d-m-Y'),
+                'totaalprijs' => '€ ' . number_format($days * $dayPrice, 2, ',', '.'),
+                'status' => ucfirst($res->status),
+                'raw_pickup_date' => $res->pickuptime,
+            ];
+        })->values();
+
+        return Inertia::render('klant/reserveringen', [
+            'reserveringen' => $reserveringen
+        ]);
+    }
+
+    public function cancel(Reservation $reservation)
+    {
+        if ($reservation->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $pickupDate = Carbon::parse($reservation->pickuptime)->startOfDay();
+        $now = Carbon::now();
+
+        if ($now->greaterThanOrEqualTo($pickupDate->copy()->subDay())) {
+            return back()->withErrors(['error' => 'Annuleren kan tot maximaal 1 dag voor de startdatum.']);
+        }
+
+        $reservation->update(['status' => 'geannuleerd']);
+
+        if ($reservation->barcode->status === 'verhuurd') {
+            $reservation->barcode->update(['status' => 'beschikbaar']);
+        }
+
+        return back()->with('success', 'Reservering is succesvol geannuleerd.');
     }
 }
