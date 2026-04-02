@@ -36,7 +36,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::prefix('medewerker')->group(function(){
     Route::get('/uitgifte-registreren',[EmployeeController::class, 'index']);
     Route::patch('/reservations/{reservation}',[EmployeeController::class, 'update']);
-
+    Route::get('/verlenging-aanvragen',[EmployeeController::class, 'indexExtended']);
+    Route::patch('/reservations/{reservation}/extend',[EmployeeController::class, 'extendReservation']);
 });
 
 require __DIR__.'/settings.php';
