@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
+import { logout } from '@/routes';
 import { 
   Search, Menu, User, Wrench, 
   Hammer, Truck, Box, ShieldCheck, Clock, 
@@ -8,7 +9,11 @@ import {
 
 // --- COMPONENTS ---
 
-const Navbar = () => {
+type WelcomeUser = {
+  name: string;
+};
+
+const Navbar = ({ user }: { user?: WelcomeUser | null }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -47,10 +52,26 @@ const Navbar = () => {
               </div>
             </div>
             <div className="h-8 w-px bg-slate-700"></div>
-            <Link href="/login" className="flex items-center gap-2 hover:text-orange-500 transition-colors">
-              <User className="w-5 h-5" />
-              <span className="font-medium">Inloggen</span>
-            </Link>
+            {user ? (
+              <>
+                <div className="flex flex-col items-end">
+                  <span className="text-xs text-slate-400">Ingelogd als</span>
+                  <div className="flex items-center gap-2 text-sm font-medium text-white">
+                    <User className="w-4 h-4" />
+                    <span>{user.name}</span>
+                  </div>
+                </div>
+                <div className="h-8 w-px bg-slate-700"></div>
+                <Link href={logout()} as="button" className="flex items-center gap-2 hover:text-orange-500 transition-colors cursor-pointer">
+                  <span className="font-medium">Uitloggen</span>
+                </Link>
+              </>
+            ) : (
+              <Link href="/login" className="flex items-center gap-2 hover:text-orange-500 transition-colors">
+                <User className="w-5 h-5" />
+                <span className="font-medium">Inloggen</span>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -78,7 +99,14 @@ const Navbar = () => {
           <div className="space-y-3">
             <a href="#" className="block py-2 text-slate-300 hover:text-white">Categories</a>
             <a href="#" className="block py-2 text-slate-300 hover:text-white">Projects & Guides</a>
-            <Link href="/login" className="block py-2 text-slate-300 hover:text-white">Inloggen / Registreren</Link>
+            {user ? (
+              <>
+                <div className="py-2 text-slate-300">Ingelogd als {user.name}</div>
+                <Link href={logout()} className="block py-2 text-slate-300 hover:text-white">Uitloggen</Link>
+              </>
+            ) : (
+              <Link href="/login" className="block py-2 text-slate-300 hover:text-white">Inloggen / Registreren</Link>
+            )}
           </div>
         </div>
       )}
@@ -306,10 +334,10 @@ const Footer = () => {
 };
 
 // --- MAIN APP COMPONENT ---
-export default function App({ categories, featuredItems }: { categories: any[], featuredItems: any[] }) {
+export default function App({ categories, featuredItems, auth }: { categories: any[], featuredItems: any[], auth?: { user?: WelcomeUser | null } }) {
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-orange-500 selection:text-white">
-      <Navbar />
+      <Navbar user={auth?.user} />
       <main>
         <Hero />
         <CategorySection categories={categories} />
