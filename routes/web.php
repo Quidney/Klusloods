@@ -11,7 +11,6 @@ use App\Http\Controllers\FacturenController;
 
 use App\Http\Controllers\ReserveringController;
 use Laravel\Fortify\Features;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
