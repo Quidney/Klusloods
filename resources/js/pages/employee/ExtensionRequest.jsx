@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Search, CheckCircle, AlertTriangle, Wrench, User, Menu, Calendar, Clock, RefreshCw } from "lucide-react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -9,6 +9,7 @@ import formatCurrency from '/resources/js/hooks/formatCurrency.tsx';
 export default function ExtensionRequest({ reservations }) {
     const [searchId, setSearchId] = useState("");
     const [reservation, setReservation] = useState(null);
+    const [localReservations, setLocalReservations] = useState(reservations);
     const [newEndDate, setNewEndDate] = useState("");
     const [isChecking, setIsChecking] = useState(false);
     console.log("reservations", reservations);
@@ -17,7 +18,7 @@ export default function ExtensionRequest({ reservations }) {
         e.preventDefault();
         if (!searchId) return;
 
-        const found = reservations.find(r => r.id.toString() === searchId);
+        const found = localReservations.find(r => r.id.toString() === searchId);
 
         if (!found) {
             toast.error("Reservering niet gevonden");
@@ -35,12 +36,13 @@ export default function ExtensionRequest({ reservations }) {
             const response = await axios.patch(`/medewerker/reservations/${reservation.id}/extend`, {
                 new_returntime: newEndDate
             });
-
+            const updatedReservation = response.data.reservation;
             toast.success(response.data.message);
-
-            // update UI met nieuwe data
-            setReservation(response.data.reservation);
-
+            setLocalReservations(prev =>
+                prev.map(r => r.id === updatedReservation.id ? updatedReservation : r)
+            );
+            setReservation(updatedReservation);
+            console.log(response);
         } catch (error) {
             if (error.response && error.response.data.message) {
                 toast.error(error.response.data.message);
@@ -52,24 +54,28 @@ export default function ExtensionRequest({ reservations }) {
         }
     };
 
-    const getExtensionDetails = () => {
-        if (!reservation || !newEndDate) return null;
+    const extensionDetails = useMemo(() => {
+    if (!reservation || !newEndDate || !reservation.barcode?.tool?.price) return null;
 
-        const start = new Date(reservation.returntime);
-        const end = new Date(newEndDate);
+    const start = new Date(reservation.returntime);
+    const end = new Date(newEndDate);
 
-        const diffTime = end - start;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    // Zet beide tijden op 00:00:00 om puur het verschil in dagen te berekenen
+    const startDateOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
-        if (diffDays <= 0) return null;
+    const diffTime = endDateOnly - startDateOnly;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-        const dayPrice = reservation.barcode.tool.price[0]?.dayprice || 0;
-        const extraCost = diffDays * dayPrice;
+    // Alleen kosten berekenen als de nieuwe datum echt later is dan de oude
+    if (diffDays <= 0) return null;
 
-        return { diffDays, extraCost };
-    };
+    const dayPrice = reservation.barcode.tool.price[0]?.dayprice || 0;
+    const extraCost = diffDays * dayPrice;
 
-    const extensionDetails = getExtensionDetails();
+    return { diffDays, extraCost };
+}, [reservation, newEndDate]); // <--- Luister naar deze variabelen
+
 
 
 
@@ -112,7 +118,7 @@ export default function ExtensionRequest({ reservations }) {
                                 <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                                 <input
                                     type="text"
-                                    placeholder="Zoek op Reservering ID (bijv. BR-102)..."
+                                    placeholder="Zoek op Reservering ID (bijv. 1)..."
                                     className="w-full rounded-lg border border-slate-300 py-3 pl-10 pr-4 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
                                     value={searchId}
                                     onChange={(e) => setSearchId(e.target.value)}
@@ -168,34 +174,38 @@ export default function ExtensionRequest({ reservations }) {
                                 <div className="mt-6 rounded-xl bg-slate-50 p-5 border border-slate-200">
                                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Prijsoverzicht</h3>
 
-                                    {reservation.barcode.tool.price.map((p) => (
-                                        <div key={p.id} className="space-y-3">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-slate-500">Standaard dagtarief:</span>
-                                                <span className="font-semibold text-slate-900">{formatCurrency({ price: p.dayprice })}</span>
-                                            </div>
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-slate-500">Waarborg (reeds voldaan):</span>
-                                                <span className="font-semibold text-slate-900">{formatCurrency({ price: p.deposit })}</span>
-                                            </div>
-
-                                            {extensionDetails && (
-                                                <div className="mt-4 pt-4 border-t border-slate-200 animate-in fade-in zoom-in-95 duration-300">
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <span className="text-sm font-medium text-orange-600 flex items-center gap-1">
-                                                            <Clock className="h-4 w-4" /> Verlenging: {extensionDetails.diffDays} dag(en)
-                                                        </span>
-                                                        <span className="text-lg font-bold text-orange-600">
-                                                            + {formatCurrency({ price: extensionDetails.extraCost })}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-[11px] text-slate-400 italic">
-                                                        * De extra kosten worden berekend op basis van het aantal extra dagen maal de dagprijs.
-                                                    </p>
+                                    {reservation?.barcode?.tool?.price?.length ? (
+                                        reservation.barcode.tool.price.map((p) => (
+                                            <div key={p.id} className="space-y-3">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-slate-500">Standaard dagtarief:</span>
+                                                    <span className="font-semibold text-slate-900">{formatCurrency({ price: p.dayprice })}</span>
                                                 </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-slate-500">Waarborg (reeds voldaan):</span>
+                                                    <span className="font-semibold text-slate-900">{formatCurrency({ price: p.deposit })}</span>
+                                                </div>
+
+                                                {extensionDetails && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-200 animate-in fade-in zoom-in-95 duration-300">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="text-sm font-medium text-orange-600 flex items-center gap-1">
+                                                                <Clock className="h-4 w-4" /> Verlenging: {extensionDetails.diffDays} dag(en)
+                                                            </span>
+                                                            <span className="text-lg font-bold text-orange-600">
+                                                                + {formatCurrency({ price: extensionDetails.extraCost })}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-[11px] text-slate-400 italic">
+                                                            * De extra kosten worden berekend op basis van het aantal extra dagen maal de dagprijs.
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-slate-500 italic">Geen prijsinformatie beschikbaar</p>
+                                    )}
                                 </div>
 
                                 <div className="mt-8 flex gap-3">

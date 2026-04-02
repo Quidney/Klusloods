@@ -107,16 +107,16 @@ class EmployeeController extends Controller
         ]);
 
         $currentEnd = $reservation->returntime;
-    $newEnd = $request->new_returntime;
+        $newEnd = $request->new_returntime;
 
-    $overlap = Reservation::where('barcode_id', $reservation->barcode_id)
-        ->where('status', '!=', 'afgerond')
-        ->where('id', '!=', $reservation->id)
-        ->where(function ($q) use ($currentEnd, $newEnd) {
-            $q->where('pickuptime', '<', $newEnd)
-              ->where('returntime', '>', $currentEnd);
-        })
-        ->exists();
+        $overlap = Reservation::where('barcode_id', $reservation->barcode_id)
+            ->where('status', '!=', 'afgerond')
+            ->where('id', '!=', $reservation->id)
+            ->where(function ($q) use ($currentEnd, $newEnd) {
+                $q->where('pickuptime', '<', $newEnd)
+                    ->where('returntime', '>', $currentEnd);
+            })
+            ->exists();
 
         if ($overlap) {
             return response()->json(['message' => 'Verlengen niet mogelijk: conflict met andere reservering'], 422);
@@ -126,10 +126,10 @@ class EmployeeController extends Controller
             'returntime' => $request->new_returntime
         ]);
 
-        // $reservation->calculateCosts(); 
 
-        $reservation->load(['user', 'barcode.tool']);
+        $reservation->load(['user', 'barcode.tool.price']);
 
-        return response()->json(['message' => 'Reservering verlengd', 'reservation' => $reservation]);
+        return response()->json([
+            'message' => 'Reservering verlengd', 'reservation' => $reservation]);
     }
 }
