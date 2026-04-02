@@ -27,6 +27,9 @@ class EmployeeController extends Controller
     {
         $reservations = Reservation::with(['user', 'barcode.tool.price'])->where('status', 'uitgegeven')->get();
         return Inertia::render('employee/ExtensionRequest', [
+            'reservations' => $reservations
+        ]);
+    }
     public function indexReturn()
     {
         $reservations = Reservation::with(['user', 'barcode.tool'])->where('status', 'uitgegeven')->get();
