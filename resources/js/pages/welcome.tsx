@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Head, Link } from '@inertiajs/react';
 import { 
   Search, Menu, ShoppingCart, User, Wrench, 
   Hammer, Truck, Box, ShieldCheck, Clock, 
@@ -70,7 +71,7 @@ const Navbar = () => {
             <div className="bg-orange-500 p-2 rounded-lg">
               <Wrench className="w-6 h-6 text-white" />
             </div>
-            <span className="font-bold text-2xl tracking-tight">Build<span className="text-orange-500">Rent</span></span>
+            <span className="font-bold text-2xl tracking-tight">De<span className="text-orange-500">Klusloods</span></span>
           </div>
 
           {/* Desktop Search */}
@@ -90,17 +91,17 @@ const Navbar = () => {
           {/* Desktop Nav Actions */}
           <div className="hidden md:flex items-center gap-6">
             <div className="flex flex-col items-end">
-              <span className="text-xs text-slate-400">Location</span>
+              <span className="text-xs text-slate-400">Locatie</span>
               <div className="flex items-center gap-1 text-sm font-medium hover:text-orange-500 cursor-pointer transition-colors">
                 <MapPin className="w-4 h-4" />
-                <span>Amsterdam, NL</span>
+                <span>Hengelo, NL</span>
               </div>
             </div>
             <div className="h-8 w-px bg-slate-700"></div>
-            <button className="flex items-center gap-2 hover:text-orange-500 transition-colors">
+            <Link href="/login" className="flex items-center gap-2 hover:text-orange-500 transition-colors">
               <User className="w-5 h-5" />
-              <span className="font-medium">Sign In</span>
-            </button>
+              <span className="font-medium">Inloggen</span>
+            </Link>
             <button className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg transition-colors relative">
               <ShoppingCart className="w-5 h-5" />
               <span className="font-medium">Cart</span>
@@ -139,7 +140,7 @@ const Navbar = () => {
           <div className="space-y-3">
             <a href="#" className="block py-2 text-slate-300 hover:text-white">Categories</a>
             <a href="#" className="block py-2 text-slate-300 hover:text-white">Projects & Guides</a>
-            <a href="#" className="block py-2 text-slate-300 hover:text-white">Sign In / Register</a>
+            <Link href="/login" className="block py-2 text-slate-300 hover:text-white">Inloggen / Registreren</Link>
           </div>
         </div>
       )}
@@ -162,23 +163,24 @@ const Hero = () => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
         <div className="max-w-2xl">
           <span className="inline-block py-1 px-3 rounded-full bg-orange-500/20 text-orange-400 text-sm font-semibold tracking-wider mb-6 border border-orange-500/30">
-            PRO & DIY RENTALS
+            VOOR PARTICULIER & AANNEMER
           </span>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-            Build smarter. <br/>
-            Rent the right <span className="text-orange-500">tools</span> today.
+            Welkom bij <br/>
+            De <span className="text-orange-500">Klusloods</span>
           </h1>
-          <p className="text-lg text-slate-300 mb-10 max-w-xl">
-            From heavy duty excavators to everyday hand tools. Get professional-grade equipment delivered straight to your job site within hours.
+          <p className="text-lg text-slate-300 mb-6 max-w-xl">
+            Gereedschap- en bouwmaterialenverhuur in Hengelo, opgericht door Sanne Meijer. 
+            Huur alles van boorhamers en slijptollen tot steigers, aanhangers en trilplaten voor uw volgende project.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
             <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-lg hover:shadow-orange-500/30 flex items-center justify-center gap-2">
-              Browse Equipment
+              Bekijk Aanbod
               <ChevronRight className="w-5 h-5" />
             </button>
             <button className="bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-8 rounded-lg backdrop-blur-sm transition-all flex items-center justify-center border border-white/10">
-              View Rental Rates
+              Onze Tarieven
             </button>
           </div>
           
@@ -364,7 +366,7 @@ const Footer = () => {
         </div>
         
         <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-          <p>© {new Date().getFullYear()} BuildRent Services. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} De Klusloods. Alle rechten voorbehouden.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
