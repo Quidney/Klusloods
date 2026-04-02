@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
         'id' => 1,
         'firstname' => 'steven',
         'lastname' => 'stan',
-        'email' => 'stevenstangmail.com',
+        'email' => 'stevenstan@gmail.com',
         'phonenumber' => '1234567890',
         'street' => 'almelo straat',
         'housenumber' => '123',
