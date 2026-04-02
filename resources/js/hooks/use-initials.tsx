@@ -4,6 +4,7 @@ export type GetInitialsFn = (fullName: string) => string;
 
 export function useInitials(): GetInitialsFn {
     return useCallback((fullName: string): string => {
+        if (!fullName) return '';
         const names = fullName.trim().split(' ');
 
         if (names.length === 0) return '';

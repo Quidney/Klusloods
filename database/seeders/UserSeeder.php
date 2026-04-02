@@ -59,5 +59,50 @@ class UserSeeder extends Seeder
         'status' => 'actief',
         'password' => 'admin'
         ]);
+
+        User::create([
+        'id' => 4,
+        'firstname' => 'anna',
+        'lastname' => 'smit',
+        'email' => 'anna.smit@gmail.com',
+        'phonenumber' => '0987654321',
+        'street' => 'dorpstraat',
+        'housenumber' => '12',
+        'postalcode' => '1234AB',
+        'place_of_residence' => 'hengelo',
+        'role' => 'klant',
+        'status' => 'actief',
+        'password' => 'password'
+        ]);
+
+        User::create([
+        'id' => 5,
+        'firstname' => 'peter',
+        'lastname' => 'de vries',
+        'email' => 'peter.devries@gmail.com',
+        'phonenumber' => '0612345678',
+        'street' => 'stationsweg',
+        'housenumber' => '34',
+        'postalcode' => '5678CD',
+        'place_of_residence' => 'hengelo',
+        'role' => 'klant',
+        'status' => 'actief',
+        'password' => 'password'
+        ]);
+
+        User::create([
+        'id' => 6,
+        'firstname' => 'lisa',
+        'lastname' => 'jansen',
+        'email' => 'lisa.jansen@klusloods.nl',
+        'phonenumber' => '0687654321',
+        'street' => 'werkstraat',
+        'housenumber' => '56',
+        'postalcode' => '9012EF',
+        'place_of_residence' => 'hengelo',
+        'role' => 'medewerker',
+        'status' => 'actief',
+        'password' => 'password'
+        ]);
     }
 }

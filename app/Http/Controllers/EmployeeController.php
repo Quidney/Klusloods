@@ -102,7 +102,6 @@ class EmployeeController extends Controller
 
     public function updateReturn(Request $request, Reservation $reservation)
     {
-
         $retour = new Retour();
         $retour->reservation_id = $reservation->id;
         $retour->actualreturntime = $request->return_date;

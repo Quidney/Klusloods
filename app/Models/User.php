@@ -22,7 +22,16 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'firstname',
+        'lastname',
         'email',
+        'phonenumber',
+        'street',
+        'housenumber',
+        'postalcode',
+        'place_of_residence',
+        'role',
+        'status',
         'password',
     ];
 
@@ -37,6 +46,23 @@ class User extends Authenticatable
         'two_factor_recovery_codes',
         'remember_token',
     ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'name',
+    ];
+
+    /**
+     * Get the user's full name.
+     */
+    public function getNameAttribute(): string
+    {
+        return trim("{$this->firstname} {$this->lastname}");
+    }
 
     /**
      * Get the attributes that should be cast.
