@@ -374,7 +374,7 @@ function CategorieComp({ item, setCategory }) {
     });
 
     function submit() {
-        put('category');
+        put('');
     }
 
     async function deleteCat(id) {

@@ -26,7 +26,7 @@ class BarcodeSeeder extends Seeder
         'id' => 2,
         'tool_id' => 2,
         'barcode' => '372048976297',
-        'status' => 'beschikbaar',
+        'status' => 'verhuurd',
         'notes' => '',
         ]);
 
@@ -34,7 +34,7 @@ class BarcodeSeeder extends Seeder
         'id' => 3,
         'tool_id' => 3,
         'barcode' => '282037596842',
-        'status' => 'beschikbaar',
+        'status' => 'onderhoud',
         'notes' => '',
         ]);
     }

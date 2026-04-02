@@ -18,25 +18,7 @@ class ReservationSeeder extends Seeder
         Reservation::create([
         'id' => 1,
         'user_id' => 3,
-        'barcode_id' => 1,
-        'pickuptime' => now(),
-        'returntime' => now()->addWeek(),
-        'status' => 'gereserveerd'
-        ]);
-
-        Reservation::create([
-        'id' => 2,
-        'user_id' => 3,
         'barcode_id' => 2,
-        'pickuptime' => now(),
-        'returntime' => now()->addWeek(),
-        'status' => 'gereserveerd'
-        ]);
-
-        Reservation::create([
-        'id' => 3,
-        'user_id' => 3,
-        'barcode_id' => 3,
         'pickuptime' => now(),
         'returntime' => now()->addWeek(),
         'status' => 'gereserveerd'

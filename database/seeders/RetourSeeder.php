@@ -23,13 +23,5 @@ class RetourSeeder extends Seeder
         'cost' => 10,
         ]);
 
-         Retour::create([
-        'id' => 2,
-        'reservation_id' => 2,
-        'actualreturntime' => now()->addWeek(),
-        'status' => 'in orde',
-        'notes' => null,
-        'cost' => 20,
-        ]);
     }
 }

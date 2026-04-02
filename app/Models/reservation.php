@@ -9,7 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Reservation extends Model
 {
     use HasFactory;
-    public function retour() :HasOne
+    protected $fillable = [
+        'user_id',
+        'barcode_id',
+        'pickuptime',
+        'returntime',
+        'status',
+        'condition',
+        'accessories',
+    ];
+    public function retour(): HasOne
     {
         return $this->hasOne(retour::class);
     }

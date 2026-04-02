@@ -17,20 +17,12 @@ class MaintenanceSeeder extends Seeder
 
         Maintenance::create([
         'id' => 1,
-        'barcode_id' => 1,
+        'barcode_id' => 3,
         'date' => now(),
         'description' => 'kapotte onderdeel',
         'status' => 'open',
         'cost' => 10
         ]);
 
-        Maintenance::create([
-        'id' => 2,
-        'barcode_id' => 2, 
-        'date' => now(),
-        'description' => 'onderdeel mist',
-        'status' => 'open',
-        'cost' => 20
-        ]);
     }
 }
