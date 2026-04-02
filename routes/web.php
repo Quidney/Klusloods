@@ -12,9 +12,30 @@ use App\Http\Controllers\FacturenController;
 use App\Http\Controllers\ReserveringController;
 use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+Route::get('/', function () {
+    return Inertia::render('welcome', [
+        'canRegister' => Features::enabled(Features::registration()),
+        'categories' => \App\Models\Category::withCount('tool')->get()->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'count' => $category->tool_count . ' items',
+            ];
+        }),
+        'featuredItems' => \App\Models\Tool::with(['category', 'price'])->take(4)->get()->map(function ($tool) {
+            return [
+                'id' => $tool->id,
+                'name' => $tool->name,
+                'category' => $tool->category->name ?? 'Algemeen',
+                'price' => $tool->price->first()->dayprice ?? 0,
+                'rating' => 4.8,
+                'reviews' => rand(10, 200),
+                'image' => $tool->images ?? 'https://images.unsplash.com/photo-1504148455328-c376907d081c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+                'available' => true,
+            ];
+        }),
+    ]);
+})->name('home');
 
 Route::prefix('admin')->group(function(){
     Route::get('/category',[CategorieController::class,'index'])->name('category');
@@ -54,5 +75,9 @@ Route::prefix('medewerker')->group(function(){
     Route::get('/retour-registreren',[EmployeeController::class, 'indexReturn']);
     Route::patch('/retour/{reservation}',[EmployeeController::class, 'updateReturn']);
 });
+
+// Route::get('/', function () { return Inertia::render('Welcome'); });
+
+// Route::get('/', function () { return Inertia::render('Welcome'); });
 
 require __DIR__.'/settings.php';
