@@ -74,6 +74,10 @@ Route::prefix('medewerker')->group(function(){
     Route::patch('/reservations/{reservation}/extend',[EmployeeController::class, 'extendReservation']);
     Route::get('/retour-registreren',[EmployeeController::class, 'indexReturn']);
     Route::patch('/retour/{reservation}',[EmployeeController::class, 'updateReturn']);
+    Route::get('/onderhoud-registreren',[EmployeeController::class, 'indexMaintenance']);
+    Route::post('/onderhoud', [EmployeeController::class, 'saveMaintenance']);
+    Route::patch('/onderhoud/{maintenance}/complete',[EmployeeController::class, 'completeMaintenance']);
+
 });
 
 // Route::get('/', function () { return Inertia::render('Welcome'); });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Reservation;
 use App\Models\Barcode;
 use App\Models\Retour;
+use App\Models\Maintenance;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -38,6 +39,17 @@ class EmployeeController extends Controller
         ]);
     }
 
+    public function indexMaintenance()
+    {
+        $barcodes = Barcode::all();
+
+        $maintenances = Maintenance::with('barcode')->get();
+        return Inertia::render('employee/RegisterMaintenance', [
+            'initialBarcodes' => $barcodes,
+            'initialMaintenances' => $maintenances,
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -52,6 +64,53 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         //
+    }
+
+    public function saveMaintenance(Request $request)
+    {
+        $request->validate([
+            'barcode_id' => 'required|exists:barcodes,id',
+            'maintenance_date' => 'required|date',
+            'description' => 'required|string',
+            'cost' => 'nullable|numeric',
+            'status' => 'required|string'
+        ]);
+
+        $maintenance = Maintenance::create([
+            'barcode_id' => $request->barcode_id,
+            'date' => $request->maintenance_date,
+            'description' => $request->description,
+            'status' => $request->status,
+            'cost' => $request->cost,
+        ]);
+        $barcode = $maintenance->barcode;
+        if ($barcode) {
+            $barcode->status = 'onderhoud';
+            $barcode->save();
+        }
+
+        return response()->json([
+        'maintenance' => $maintenance,
+        'message' => 'Onderhoud aangemaakt'
+    ]);
+    }
+
+    public function completeMaintenance($id)
+    {
+        $maintenance = Maintenance::findOrFail($id);
+        $maintenance->status = 'afgerond';
+        $maintenance->save();
+
+        $barcode = $maintenance->barcode;
+        if ($barcode && $barcode->status !== 'afgeschreven') {
+            $barcode->status = 'beschikbaar';
+            $barcode->save();
+        }
+
+         return response()->json([
+        'maintenance' => $maintenance,
+        'message' => 'Onderhoud afgerond'
+    ]);
     }
 
     /**
