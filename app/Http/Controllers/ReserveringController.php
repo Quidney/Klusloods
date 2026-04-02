@@ -9,6 +9,8 @@ use App\Models\Barcode;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ReservationConfirmed;
 
 class ReserveringController extends Controller
 {
@@ -108,6 +110,8 @@ class ReserveringController extends Controller
             $availableBarcode->status = 'verhuurd';
             $availableBarcode->save();
         }
+
+        Mail::to($request->user()->email)->send(new ReservationConfirmed($reservation));
 
         return back()->with('success', 'Reservering succesvol geplaatst!');
     }
