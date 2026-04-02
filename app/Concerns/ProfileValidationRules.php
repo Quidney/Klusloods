@@ -15,7 +15,12 @@ trait ProfileValidationRules
     protected function profileRules(?int $userId = null): array
     {
         return [
-            'name' => $this->nameRules(),
+            'firstname' => ['required', 'string', 'max:20'],
+            'lastname' => ['required', 'string', 'max:20'],
+            'street' => ['required', 'string', 'max:50'],
+            'housenumber' => ['required', 'string', 'max:5'],
+            'postalcode' => ['required', 'string', 'max:6'],
+            'place_of_residence' => ['required', 'string', 'max:30'],
             'email' => $this->emailRules($userId),
         ];
     }

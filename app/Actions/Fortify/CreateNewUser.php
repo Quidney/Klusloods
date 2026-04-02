@@ -25,8 +25,16 @@ class CreateNewUser implements CreatesNewUsers
         ])->validate();
 
         return User::create([
-            'name' => $input['name'],
+            'firstname' => $input['firstname'],
+            'lastname' => $input['lastname'],
             'email' => $input['email'],
+            'phonenumber' => $input['phonenumber'] ?? '0000000000',
+            'street' => $input['street'],
+            'housenumber' => $input['housenumber'],
+            'postalcode' => $input['postalcode'],
+            'place_of_residence' => $input['place_of_residence'],
+            'role' => \App\Enums\userrole::KLANT,
+            'status' => \App\Enums\userstatus::ACTIEF,
             'password' => $input['password'],
         ]);
     }
