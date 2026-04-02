@@ -57,11 +57,15 @@ export default function Reserveringen({ reserveringen }: { reserveringen: Reserv
 
     const confirmAnnulering = () => {
         if (!selectedReservering) return;
-        router.patch(`/klant/reserveringen/${selectedReservering.id}/cancel`, {}, {
+
+        router.patch(`/reserveringen/${selectedReservering.id}/cancel`, {}, {
             onSuccess: () => {
                 setIsModalOpen(false);
                 setSelectedReservering(null);
             },
+            onError: (errors) => {
+                console.error(errors);
+            }
         });
     };
 
