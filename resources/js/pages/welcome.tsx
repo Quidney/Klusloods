@@ -1,61 +1,10 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { 
-  Search, Menu, ShoppingCart, User, Wrench, 
+  Search, Menu, User, Wrench, 
   Hammer, Truck, Box, ShieldCheck, Clock, 
   ChevronRight, Star, MapPin
 } from 'lucide-react';
-
-// --- MOCK DATA ---
-const CATEGORIES = [
-  { id: 1, name: 'Power Tools', icon: <Hammer className="w-6 h-6" />, count: '124 items' },
-  { id: 2, name: 'Heavy Machinery', icon: <Truck className="w-6 h-6" />, count: '32 items' },
-  { id: 3, name: 'Hand Tools', icon: <Wrench className="w-6 h-6" />, count: '450 items' },
-  { id: 4, name: 'Raw Materials', icon: <Box className="w-6 h-6" />, count: '89 items' },
-];
-
-const FEATURED_ITEMS = [
-  {
-    id: 1,
-    name: 'Makita Rotary Hammer Drill',
-    category: 'Power Tools',
-    price: 25,
-    rating: 4.8,
-    reviews: 124,
-    image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
-    available: true,
-  },
-  {
-    id: 2,
-    name: 'Industrial Cement Mixer (Electric)',
-    category: 'Heavy Machinery',
-    price: 45,
-    rating: 4.9,
-    reviews: 89,
-    image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
-    available: true,
-  },
-  {
-    id: 3,
-    name: 'Aluminium Scaffolding Tower (5m)',
-    category: 'Equipment',
-    price: 35,
-    rating: 4.7,
-    reviews: 56,
-    image: 'https://images.unsplash.com/photo-1534005523992-94b2a8c3d987?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
-    available: false,
-  },
-  {
-    id: 4,
-    name: 'Premium Plywood Sheets (Bundle)',
-    category: 'Raw Materials',
-    price: 15,
-    rating: 4.5,
-    reviews: 210,
-    image: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
-    available: true,
-  }
-];
 
 // --- COMPONENTS ---
 
@@ -94,7 +43,7 @@ const Navbar = () => {
               <span className="text-xs text-slate-400">Locatie</span>
               <div className="flex items-center gap-1 text-sm font-medium hover:text-orange-500 cursor-pointer transition-colors">
                 <MapPin className="w-4 h-4" />
-                <span>Hengelo, NL</span>
+                <span>Almelo, NL</span>
               </div>
             </div>
             <div className="h-8 w-px bg-slate-700"></div>
@@ -102,21 +51,10 @@ const Navbar = () => {
               <User className="w-5 h-5" />
               <span className="font-medium">Inloggen</span>
             </Link>
-            <button className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg transition-colors relative">
-              <ShoppingCart className="w-5 h-5" />
-              <span className="font-medium">Cart</span>
-              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                2
-              </span>
-            </button>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-4">
-            <button className="relative">
-              <ShoppingCart className="w-6 h-6" />
-              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center">2</span>
-            </button>
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-300 hover:text-white">
               <Menu className="w-7 h-7" />
             </button>
@@ -206,7 +144,7 @@ const Hero = () => {
   );
 };
 
-const CategorySection = () => {
+const CategorySection = ({ categories }: { categories: any[] }) => {
   return (
     <div className="py-16 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -221,13 +159,13 @@ const CategorySection = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <div 
               key={cat.id} 
               className="bg-white rounded-xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:border-orange-200 transition-all cursor-pointer group"
             >
               <div className="w-14 h-14 bg-slate-50 text-slate-700 rounded-lg flex items-center justify-center mb-4 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
-                {cat.icon}
+                <Wrench className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-1">{cat.name}</h3>
               <p className="text-sm text-slate-500">{cat.count}</p>
@@ -239,7 +177,7 @@ const CategorySection = () => {
   );
 };
 
-const FeaturedProducts = () => {
+const FeaturedProducts = ({ featuredItems }: { featuredItems: any[] }) => {
   return (
     <div className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -249,7 +187,7 @@ const FeaturedProducts = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {FEATURED_ITEMS.map((item) => (
+          {featuredItems.map((item) => (
             <div key={item.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all group flex flex-col">
               <div className="relative h-56 overflow-hidden bg-slate-100">
                 <img 
@@ -278,19 +216,9 @@ const FeaturedProducts = () => {
                 
                 <div className="mt-auto pt-4 flex items-end justify-between border-t border-slate-100">
                   <div>
-                    <span className="text-2xl font-bold text-orange-600">${item.price}</span>
+                    <span className="text-2xl font-bold text-orange-600">€{Number(item.price).toFixed(2)}</span>
                     <span className="text-slate-500 text-sm"> / day</span>
                   </div>
-                  <button 
-                    disabled={!item.available}
-                    className={`p-2 rounded-lg transition-colors ${
-                      item.available 
-                        ? 'bg-slate-900 hover:bg-orange-500 text-white' 
-                        : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                  </button>
                 </div>
               </div>
             </div>
@@ -378,27 +306,14 @@ const Footer = () => {
 };
 
 // --- MAIN APP COMPONENT ---
-export default function App() {
+export default function App({ categories, featuredItems }: { categories: any[], featuredItems: any[] }) {
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-orange-500 selection:text-white">
       <Navbar />
       <main>
         <Hero />
-        <CategorySection />
-        <FeaturedProducts />
-        
-        {/* Simple CTA Section */}
-        <div className="bg-orange-500 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="text-white max-w-2xl">
-              <h2 className="text-3xl font-bold mb-4">Are you a contractor?</h2>
-              <p className="text-orange-100 text-lg">Sign up for a Pro Account to get up to 25% off long-term rentals, priority delivery, and dedicated support.</p>
-            </div>
-            <button className="bg-slate-900 text-white hover:bg-slate-800 font-bold py-4 px-8 rounded-lg whitespace-nowrap transition-colors shadow-lg">
-              Apply for Pro Account
-            </button>
-          </div>
-        </div>
+        <CategorySection categories={categories} />
+        <FeaturedProducts featuredItems={featuredItems} />
       </main>
       <Footer />
     </div>
