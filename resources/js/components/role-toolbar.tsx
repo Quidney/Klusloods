@@ -17,6 +17,7 @@ const roleLinks: Record<string, { label: string; href: string }[]> = {
         { label: 'Tools', href: '/admin/tools' },
         { label: 'Gebruikers', href: '/admin/users' },
         { label: 'Statistieken', href: '/admin/stats' },
+        { label: 'Facturen', href: '/admin/facturen' },
     ],
 };
 

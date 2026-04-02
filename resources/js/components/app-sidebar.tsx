@@ -83,6 +83,11 @@ const roleNavItems: Record<string, NavItem[]> = {
             href: '/admin/stats',
             icon: BarChart3,
         },
+        {
+            title: 'Facturen',
+            href: '/admin/facturen',
+            icon: Receipt,
+        },
     ],
 };
 

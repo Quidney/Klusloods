@@ -32,13 +32,40 @@ export default function Facturen({ facturen = [] }: Props) {
         return 'bg-gray-100 text-gray-700 border border-gray-200';
     };
 
-    const openPdf = (path: string | null) => {
+    const normalizeInvoiceUrl = (path: string | null) => {
         if (!path) {
-            alert("Er is geen PDF-bestand gekoppeld aan deze factuur.");
-            return;
+            alert('Er is geen PDF-bestand gekoppeld aan deze factuur.');
+            return null;
         }
 
-        const fullUrl = `/storage/${path}`;
+        return path.startsWith('/facturen/') || path.startsWith('http')
+            ? path
+            : `/storage/${path}`;
+    };
+
+    const appendQueryParam = (url: string, key: string, value: string) => {
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}${key}=${value}`;
+    };
+
+    const openPrint = (path: string | null) => {
+        const fullUrl = normalizeInvoiceUrl(path);
+        if (!fullUrl) return;
+
+        window.open(appendQueryParam(fullUrl, 'autoprint', '1'), '_blank');
+    };
+
+    const openDownloadPdf = (path: string | null) => {
+        const fullUrl = normalizeInvoiceUrl(path);
+        if (!fullUrl) return;
+
+        window.open(appendQueryParam(fullUrl, 'download', '1'), '_blank');
+    };
+
+    const openPdf = (path: string | null) => {
+        const fullUrl = normalizeInvoiceUrl(path);
+        if (!fullUrl) return;
+
         window.open(fullUrl, '_blank');
     };
 

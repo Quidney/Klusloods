@@ -51,6 +51,7 @@ Route::middleware(['auth', 'role:beheerder'])->prefix('admin')->group(function()
     Route::get('users',[UserController::class,'index'])->name('users');
     Route::put('users',[UserController::class,'update'])->name('users.update');
     Route::get('/stats',[StatController::class,'index'])->name('stats');
+    Route::get('/facturen',[FacturenController::class,'adminIndex'])->name('admin.facturen');
 });
 
 Route::middleware(['auth', 'role:klant'])->group(function () {
@@ -65,6 +66,9 @@ Route::middleware(['auth', 'role:klant'])->group(function () {
     Route::get('/klant/reserveringen/{id}', [ReserveringController::class, 'show'])->name('reservering.show_detail');
     Route::patch('/klant/reserveringen/{reservation}', [ReserveringController::class, 'update'])->name('reservering.update');
 });
+
+Route::middleware(['auth'])->get('/facturen/{invoice}/print', [FacturenController::class, 'print'])->name('invoices.print');
+Route::middleware(['auth'])->get('/facturen/{invoice}/bestand', [FacturenController::class, 'file'])->name('invoices.file');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
