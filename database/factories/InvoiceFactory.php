@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Reservation;
 use App\Models\User;
 
 /**
@@ -18,7 +19,10 @@ class InvoiceFactory extends Factory
     public function definition(): array
     {
         return [
+            'invoice_number' => 'INV-'.$this->faker->unique()->numerify('########'),
+            'invoice_date' => now()->toDateString(),
             'user_id' => User::factory(), 
+            'reservation_id' => Reservation::factory(),
             'filepath' => fake()->filePath(), 
             'paymentstatus' => fake()->randomElement(['betaald','deels betaald','openstaand']),
         ];
