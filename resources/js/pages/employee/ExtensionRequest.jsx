@@ -12,7 +12,6 @@ export default function ExtensionRequest({ reservations }) {
     const [localReservations, setLocalReservations] = useState(reservations);
     const [newEndDate, setNewEndDate] = useState("");
     const [isChecking, setIsChecking] = useState(false);
-    console.log("reservations", reservations);
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -42,7 +41,6 @@ export default function ExtensionRequest({ reservations }) {
                 prev.map(r => r.id === updatedReservation.id ? updatedReservation : r)
             );
             setReservation(updatedReservation);
-            console.log(response);
         } catch (error) {
             if (error.response && error.response.data.message) {
                 toast.error(error.response.data.message);
@@ -60,21 +58,19 @@ export default function ExtensionRequest({ reservations }) {
     const start = new Date(reservation.returntime);
     const end = new Date(newEndDate);
 
-    // Zet beide tijden op 00:00:00 om puur het verschil in dagen te berekenen
     const startDateOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
     const diffTime = endDateOnly - startDateOnly;
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-    // Alleen kosten berekenen als de nieuwe datum echt later is dan de oude
     if (diffDays <= 0) return null;
 
     const dayPrice = reservation.barcode.tool.price[0]?.dayprice || 0;
     const extraCost = diffDays * dayPrice;
 
     return { diffDays, extraCost };
-}, [reservation, newEndDate]); // <--- Luister naar deze variabelen
+}, [reservation, newEndDate]); 
 
 
 
