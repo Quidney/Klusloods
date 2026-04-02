@@ -68,6 +68,7 @@ Route::middleware(['auth', 'role:klant'])->group(function () {
 });
 
 Route::middleware(['auth'])->get('/facturen/{invoice}/print', [FacturenController::class, 'print'])->name('invoices.print');
+Route::middleware(['auth'])->get('/facturen/{invoice}/bestand', [FacturenController::class, 'file'])->name('invoices.file');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');

@@ -6,8 +6,10 @@ use App\Mail\InvoiceGenerated;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Reservation;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class InvoiceService
 {
@@ -21,6 +23,11 @@ class InvoiceService
 
         $existing = Invoice::where('reservation_id', $reservation->id)->first();
         if ($existing) {
+            if (empty($existing->filepath)) {
+                $existing->filepath = $this->generateAndStorePdf($existing);
+                $existing->save();
+            }
+
             return $existing;
         }
 
@@ -35,7 +42,7 @@ class InvoiceService
             'paymentstatus' => 'openstaand',
         ]);
 
-        $invoice->filepath = route('invoices.print', $invoice);
+        $invoice->filepath = $this->generateAndStorePdf($invoice);
         $invoice->save();
 
         if ($reservation->user?->email) {
@@ -83,6 +90,51 @@ class InvoiceService
             'subtotal' => round($subtotal, 2),
             'total' => round($total, 2),
         ];
+    }
+
+    private function generateAndStorePdf(Invoice $invoice): string
+    {
+        $invoice->loadMissing(['user', 'reservation.barcode.tool.price', 'reservation.retour']);
+
+        $company = Company::query()->first();
+        $customer = $invoice->user;
+
+        $customerAddress = $customer
+            ? trim("{$customer->street} {$customer->housenumber}, {$customer->postalcode} {$customer->place_of_residence}")
+            : '-';
+
+        $deliveryDate = $invoice->reservation?->pickuptime
+            ? Carbon::parse($invoice->reservation->pickuptime)->format('d-m-Y')
+            : '-';
+
+        $breakdown = $invoice->reservation
+            ? self::calculateTotals($invoice->reservation)
+            : [
+                'product_type' => 'Onbekend product',
+                'period' => '-',
+                'days' => 0,
+                'rental_costs' => 0,
+                'deposit' => 0,
+                'extra_costs' => 0,
+                'vat_rate' => 0,
+                'vat_amount' => 0,
+                'subtotal' => 0,
+                'total' => 0,
+            ];
+
+        $pdf = Pdf::loadView('invoices.print', [
+            'invoice' => $invoice,
+            'company' => $company,
+            'customerAddress' => $customerAddress,
+            'deliveryDate' => $deliveryDate,
+            'breakdown' => $breakdown,
+            'isPdf' => true,
+        ])->setPaper('a4', 'portrait');
+
+        $relativePath = 'invoices/'.$invoice->invoice_number.'.pdf';
+        Storage::disk('public')->put($relativePath, $pdf->output());
+
+        return $relativePath;
     }
 
     private function generateInvoiceNumber(Reservation $reservation): string

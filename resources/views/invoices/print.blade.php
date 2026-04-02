@@ -197,6 +197,64 @@
             body { padding: 16px; }
         }
 
+        .pdf-mode {
+            background: #fff;
+            padding: 0;
+            font-family: DejaVu Sans, Arial, sans-serif;
+        }
+
+        .pdf-mode .container {
+            max-width: none;
+            width: 100%;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: visible;
+        }
+
+        .pdf-mode .topbar { padding: 10px 14px; }
+        .pdf-mode .content { padding: 10px 12px; }
+        .pdf-mode .brand { font-size: 16px; }
+        .pdf-mode .invoice-tag { font-size: 10px; padding: 4px 8px; }
+        .pdf-mode .meta, .pdf-mode .card p, .pdf-mode .card h3, .pdf-mode .summary-row { font-size: 11px; }
+
+        .pdf-mode .header-grid {
+            display: block;
+        }
+
+        .pdf-mode .header-grid .card {
+            margin-bottom: 10px;
+        }
+
+        .pdf-mode .responsive-print-table {
+            table-layout: fixed;
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 0;
+            overflow: visible;
+            font-size: 11px;
+        }
+
+        .pdf-mode .responsive-print-table th,
+        .pdf-mode .responsive-print-table td {
+            display: table-cell;
+            border: 1px solid var(--line);
+            padding: 6px;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .pdf-mode .responsive-print-table td::before {
+            content: none;
+        }
+
+        .pdf-mode .amount {
+            white-space: normal;
+        }
+
         @media print {
             .actions { display: none; }
             body { margin: 0; padding: 0; background: #fff; }
@@ -254,10 +312,52 @@
                 min-width: 42%;
                 max-width: 42%;
             }
+
+            .pdf-mode .responsive-print-table,
+            .pdf-mode .responsive-print-table thead,
+            .pdf-mode .responsive-print-table tbody,
+            .pdf-mode .responsive-print-table tr,
+            .pdf-mode .responsive-print-table th,
+            .pdf-mode .responsive-print-table td {
+                display: table;
+                width: 100%;
+            }
+
+            .pdf-mode .responsive-print-table {
+                display: table;
+                table-layout: fixed;
+                border-collapse: collapse;
+            }
+
+            .pdf-mode .responsive-print-table thead {
+                display: table-header-group;
+            }
+
+            .pdf-mode .responsive-print-table tbody {
+                display: table-row-group;
+            }
+
+            .pdf-mode .responsive-print-table tr {
+                display: table-row;
+                border: 0;
+                margin: 0;
+                padding: 0;
+            }
+
+            .pdf-mode .responsive-print-table th,
+            .pdf-mode .responsive-print-table td {
+                display: table-cell;
+                border: 1px solid var(--line);
+                padding: 6px;
+            }
+
+            .pdf-mode .responsive-print-table td::before {
+                content: none;
+            }
         }
     </style>
 </head>
-<body>
+<body class="{{ !empty($isPdf) ? 'pdf-mode' : '' }}">
 <div class="container">
     <div class="topbar">
         <div class="brand">De<span>Klusloods</span></div>
@@ -327,35 +427,40 @@
 
         <p class="muted" style="margin-top: 14px;">Status: {{ ucfirst($invoice->paymentstatus) }}</p>
 
-        <div class="actions">
-            <button class="btn primary" onclick="window.print()">Print factuur</button>
-            <button class="btn" onclick="goBackFromInvoice()">Terug</button>
-        </div>
+        @if(empty($isPdf))
+            <div class="actions">
+                <button class="btn primary" onclick="window.print()">Print factuur</button>
+                <button class="btn" onclick="goBackFromInvoice()">Terug</button>
+            </div>
+        @endif
     </div>
 </div>
-<script>
-    function goBackFromInvoice() {
-        const referrer = document.referrer;
-
-        if (referrer) {
-            window.location.href = referrer;
-            return;
-        }
-
-        if (window.history.length > 1) {
-            window.history.back();
-            return;
-        }
-
-        window.location.href = '/';
-    }
-</script>
-@if(request()->boolean('download') || request()->boolean('autoprint'))
+@if(empty($isPdf))
     <script>
-        window.addEventListener('load', function () {
-            window.print();
-        });
+        function goBackFromInvoice() {
+            const referrer = document.referrer;
+
+            if (referrer) {
+                window.location.href = referrer;
+                return;
+            }
+
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+
+            window.location.href = '/';
+        }
     </script>
+
+    @if(request()->boolean('download') || request()->boolean('autoprint'))
+        <script>
+            window.addEventListener('load', function () {
+                window.print();
+            });
+        </script>
+    @endif
 @endif
 </body>
 </html>

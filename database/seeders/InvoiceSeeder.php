@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Barcode;
-use App\Models\Invoice;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Services\InvoiceService;
 use Illuminate\Database\Seeder;
 
 class InvoiceSeeder extends Seeder
@@ -15,6 +15,8 @@ class InvoiceSeeder extends Seeder
      */
     public function run(): void
     {
+        $invoiceService = app(InvoiceService::class);
+
         $users = User::query()->orderBy('id')->get();
         $barcodeIds = Barcode::query()->orderBy('id')->pluck('id')->values();
 
@@ -42,16 +44,12 @@ class InvoiceSeeder extends Seeder
                 ]);
             }
 
-            Invoice::updateOrCreate(
-                ['invoice_number' => sprintf('INV-SEED-%04d', $user->id)],
-                [
-                    'invoice_date' => now()->toDateString(),
-                    'user_id' => $user->id,
-                    'reservation_id' => $reservation->id,
-                    'filepath' => '',
-                    'paymentstatus' => $index % 2 === 0 ? 'openstaand' : 'betaald',
-                ]
-            );
+            if ($reservation->status !== 'afgerond') {
+                $reservation->status = 'afgerond';
+                $reservation->save();
+            }
+
+            $invoiceService->generateForReservation($reservation);
         }
     }
 }

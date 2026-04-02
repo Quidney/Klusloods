@@ -8,6 +8,8 @@ use App\Models\Invoice;
 use App\Services\InvoiceService;
 use BackedEnum;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -37,7 +39,7 @@ class FacturenController extends Controller
                 'omschrijving' => $breakdown['product_type'],
                 'bedrag' => '€ ' . number_format($breakdown['total'], 2, ',', '.'),
                 'status' => ucfirst($invoice->paymentstatus ?? 'openstaand'),
-                'pdf_path' => route('invoices.print', $invoice),
+                'pdf_path' => route('invoices.file', $invoice),
             ];
         });
 
@@ -126,6 +128,33 @@ class FacturenController extends Controller
             'customerAddress' => $customerAddress,
             'deliveryDate' => $deliveryDate,
             'breakdown' => $breakdown,
+        ]);
+    }
+
+    public function file(Request $request, Invoice $invoice)
+    {
+        $user = Auth::user();
+        $role = $user?->role;
+
+        if ($role instanceof BackedEnum) {
+            $role = $role->value;
+        }
+
+        if ($user?->id !== $invoice->user_id && $role !== 'beheerder') {
+            abort(403);
+        }
+
+        if (empty($invoice->filepath) || ! Storage::disk('public')->exists($invoice->filepath)) {
+            return redirect()->route('invoices.print', $invoice);
+        }
+
+        $filename = ($invoice->invoice_number ?: ('factuur-'.$invoice->id)).'.pdf';
+
+        $contentDispositionType = $request->boolean('download') ? 'attachment' : 'inline';
+
+        return response(Storage::disk('public')->get($invoice->filepath), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => $contentDispositionType.'; filename="'.$filename.'"',
         ]);
     }
 }
