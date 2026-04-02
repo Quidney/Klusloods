@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Reservation;
 use App\Models\Barcode;
 use App\Models\Retour;
+use App\Models\Maintenance;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -27,6 +28,16 @@ class EmployeeController extends Controller
         $reservations = Reservation::with(['user', 'barcode.tool'])->where('status', 'uitgegeven')->get();
         return Inertia::render('employee/RegisterReturn', [
             'reservations' => $reservations
+        ]);
+    }
+
+    public function indexMaintenance()
+    {
+        $barcodes = Barcode::all();
+        $maintenances = Maintenance::with('barcode')->get();
+        return Inertia::render('employee/RegisterMaintenance', [
+            'barcodes' => $barcodes,
+            'maintenances' => $maintenances,
         ]);
     }
 
