@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\FacturenController;
+use App\Http\Controllers\OpeninghourController;
 
 use App\Http\Controllers\ReserveringController;
 use Laravel\Fortify\Features;
@@ -52,6 +53,8 @@ Route::middleware(['auth', 'role:beheerder'])->prefix('admin')->group(function()
     Route::put('users',[UserController::class,'update'])->name('users.update');
     Route::get('/stats',[StatController::class,'index'])->name('stats');
     Route::get('/facturen',[FacturenController::class,'adminIndex'])->name('admin.facturen');
+    Route::get('/openingstijden',[OpeninghourController::class,'index'])->name('admin.openinghours');
+    Route::put('/openingstijden',[OpeninghourController::class,'update'])->name('admin.openinghours.update');
 });
 
 Route::middleware(['auth', 'role:klant'])->group(function () {

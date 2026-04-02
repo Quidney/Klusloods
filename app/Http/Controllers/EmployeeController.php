@@ -6,12 +6,17 @@ use App\Models\Reservation;
 use App\Models\Barcode;
 use App\Models\Retour;
 use App\Models\Maintenance;
+use App\Services\OpeningHoursService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
 class EmployeeController extends Controller
 {
+    public function __construct(private readonly OpeningHoursService $openingHoursService)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -20,7 +25,13 @@ class EmployeeController extends Controller
         $reservations = Reservation::with(['user', 'barcode.tool'])->get();
 
         return Inertia::render('employee/RegisterIssue', [
-            'reservations' => $reservations
+            'reservations' => $reservations,
+            'openingHours' => $this->openingHoursService->allOrdered()->map(fn ($openingHour) => [
+                'day' => $openingHour->day,
+                'startime' => $openingHour->startime,
+                'endtime' => $openingHour->endtime,
+                'status' => $openingHour->status,
+            ]),
         ]);
     }
 
@@ -35,7 +46,13 @@ class EmployeeController extends Controller
     {
         $reservations = Reservation::with(['user', 'barcode.tool'])->where('status', 'uitgegeven')->get();
         return Inertia::render('employee/RegisterReturn', [
-            'reservations' => $reservations
+            'reservations' => $reservations,
+            'openingHours' => $this->openingHoursService->allOrdered()->map(fn ($openingHour) => [
+                'day' => $openingHour->day,
+                'startime' => $openingHour->startime,
+                'endtime' => $openingHour->endtime,
+                'status' => $openingHour->status,
+            ]),
         ]);
     }
 
@@ -134,6 +151,10 @@ class EmployeeController extends Controller
      */
     public function updateIssue(Request $request, Reservation $reservation)
     {
+        if (! $this->openingHoursService->isWithin(now())) {
+            return response()->json(['message' => 'Uitgifte kan alleen binnen openingstijden geregistreerd worden.'], 422);
+        }
+
         if ($reservation->status === 'geannuleerd') {
             return response()->json(['message' => 'Reservering geannuleerd'], 400);
         }
@@ -161,6 +182,21 @@ class EmployeeController extends Controller
 
     public function updateReturn(Request $request, Reservation $reservation)
     {
+        $request->validate([
+            'return_date' => 'required|date',
+            'status' => 'required|string',
+            'description' => 'nullable|string',
+            'damage_cost' => 'nullable|numeric|min:0',
+        ]);
+
+        if (! $this->openingHoursService->isWithin(now())) {
+            return response()->json(['message' => 'Retour kan alleen binnen openingstijden geregistreerd worden.'], 422);
+        }
+
+        if (! $this->openingHoursService->isWithin(Carbon::parse($request->return_date))) {
+            return response()->json(['message' => 'De opgegeven retourtijd valt buiten openingstijden.'], 422);
+        }
+
         $retour = new Retour();
         $retour->reservation_id = $reservation->id;
         $retour->actualreturntime = $request->return_date;

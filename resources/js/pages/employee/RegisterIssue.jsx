@@ -5,8 +5,43 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import RoleToolbar from '@/components/role-toolbar';
 
+const DAY_MAP = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
 
-export default function RegisterIssue({ reservations }) {
+function isWithinOpeningHours(dateTimeInput, openingHours) {
+  const dateTime = new Date(dateTimeInput);
+
+  if (Number.isNaN(dateTime.getTime())) {
+    return false;
+  }
+
+  const day = DAY_MAP[dateTime.getDay()];
+  const rule = openingHours.find((item) => item.day === day);
+
+  if (!rule || rule.status !== 'open' || !rule.startime || !rule.endtime) {
+    return false;
+  }
+
+  const currentTime = dateTime.toTimeString().slice(0, 8);
+  const start = rule.startime.slice(0, 8);
+  const end = rule.endtime.slice(0, 8);
+
+  return currentTime >= start && currentTime <= end;
+}
+
+function openingWindow(dateTimeInput, openingHours) {
+  const dateTime = new Date(dateTimeInput);
+  const day = DAY_MAP[dateTime.getDay()];
+  const rule = openingHours.find((item) => item.day === day);
+
+  if (!rule || rule.status !== 'open' || !rule.startime || !rule.endtime) {
+    return 'Gesloten';
+  }
+
+  return `${rule.startime.slice(0, 5)} - ${rule.endtime.slice(0, 5)}`;
+}
+
+
+export default function RegisterIssue({ reservations, openingHours }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [selectedReservation, setSelectedReservation] = useState(null);
@@ -15,6 +50,7 @@ export default function RegisterIssue({ reservations }) {
   const [accessories, setAccessories] = useState("");
   const [message, setMessage] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
+  const isNowWithinOpeningHours = isWithinOpeningHours(new Date(), openingHours);
 
 
   const handleSearch = () => {
@@ -52,6 +88,11 @@ export default function RegisterIssue({ reservations }) {
 
   const handleIssue = async () => {
     if (!selectedReservation) return;
+
+    if (!isNowWithinOpeningHours) {
+      toast.error("Uitgifte kan alleen binnen openingstijden geregistreerd worden.");
+      return;
+    }
 
     if (selectedReservation.status === "geannuleerd") {
       toast.error("Deze reservering is geannuleerd.");
@@ -94,7 +135,8 @@ export default function RegisterIssue({ reservations }) {
 
     } catch (error) {
       console.error(error);
-      toast.error("Er is iets misgegaan bij het uitgeven.");
+      const backendMessage = error?.response?.data?.message;
+      toast.error(backendMessage || "Er is iets misgegaan bij het uitgeven.");
     }
   };
 
@@ -131,6 +173,10 @@ export default function RegisterIssue({ reservations }) {
         <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow">
 
           <h1 className="text-2xl font-bold mb-6 p-2">Reservering Uitgeven</h1>
+
+          <div className={`mb-4 rounded-lg border px-4 py-3 text-sm ${isNowWithinOpeningHours ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
+            {isNowWithinOpeningHours ? 'Binnen openingstijden: uitgifte registreren is mogelijk.' : 'Buiten openingstijden: uitgifte registreren is nu niet mogelijk.'}
+          </div>
 
           <div className="flex gap-2 mb-6">
             <input
@@ -204,6 +250,14 @@ export default function RegisterIssue({ reservations }) {
                 <p className="text-sm">
                   <span className="font-medium">Ophaaltijd:</span>{" "}
                   {new Date(selectedReservation.pickuptime).toLocaleString()}
+                </p>
+
+                <p className="mt-1 text-sm">
+                  <span className="font-medium">Binnen openingstijden:</span>{' '}
+                  <span className={isWithinOpeningHours(selectedReservation.pickuptime, openingHours) ? 'text-green-700' : 'text-red-700'}>
+                    {isWithinOpeningHours(selectedReservation.pickuptime, openingHours) ? 'Ja' : 'Nee'}
+                  </span>
+                  <span className="text-slate-500"> ({openingWindow(selectedReservation.pickuptime, openingHours)})</span>
                 </p>
 
                 <p className="text-sm">

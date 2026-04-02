@@ -5,7 +5,34 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import RoleToolbar from '@/components/role-toolbar';
 
-export default function RegisterReturn({ reservations }) {
+const DAY_MAP = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+
+function isWithinOpeningHours(dateTimeInput, openingHours) {
+    if (!dateTimeInput) {
+        return false;
+    }
+
+    const dateTime = new Date(dateTimeInput);
+
+    if (Number.isNaN(dateTime.getTime())) {
+        return false;
+    }
+
+    const day = DAY_MAP[dateTime.getDay()];
+    const rule = openingHours.find((item) => item.day === day);
+
+    if (!rule || rule.status !== 'open' || !rule.startime || !rule.endtime) {
+        return false;
+    }
+
+    const currentTime = dateTime.toTimeString().slice(0, 8);
+    const start = rule.startime.slice(0, 8);
+    const end = rule.endtime.slice(0, 8);
+
+    return currentTime >= start && currentTime <= end;
+}
+
+export default function RegisterReturn({ reservations, openingHours }) {
     const [reservationList, setReservationList] = useState(reservations);
     const [selectedReservation, setSelectedReservation] = useState(null);
     const [returnStatus, setReturnStatus] = useState("");
@@ -13,11 +40,23 @@ export default function RegisterReturn({ reservations }) {
     const [damageCost, setDamageCost] = useState("");
     const [returnDate, setReturnDate] = useState("");
     const [showReservation, setShowReservation] = useState(false);
+    const isNowWithinOpeningHours = isWithinOpeningHours(new Date(), openingHours);
+    const isReturnDateWithinOpeningHours = returnDate ? isWithinOpeningHours(returnDate, openingHours) : null;
 
     const today = new Date().toISOString().slice(0, 16);
 
     const handleReturn = async () => {
         if (!selectedReservation) return;
+
+        if (!isNowWithinOpeningHours) {
+            toast.error("Retour kan alleen binnen openingstijden geregistreerd worden.");
+            return;
+        }
+
+        if (!returnDate) {
+            toast.warning("Kies een retourdatum.");
+            return;
+        }
 
         try {
             const res = await axios.patch(`/medewerker/retour/${selectedReservation.id}`, {
@@ -39,7 +78,8 @@ export default function RegisterReturn({ reservations }) {
             setReturnDate("");
 
         } catch (error) {
-            toast.error("Fout bij retour registreren");
+            const backendMessage = error?.response?.data?.message;
+            toast.error(backendMessage || "Fout bij retour registreren");
         }
     };
     return (
@@ -72,6 +112,10 @@ export default function RegisterReturn({ reservations }) {
             <RoleToolbar role="medewerker" />
 
             <main className="flex-grow">
+                <div className={`mx-auto mt-5 max-w-xl rounded-lg border px-4 py-3 text-sm ${isNowWithinOpeningHours ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
+                    {isNowWithinOpeningHours ? 'Binnen openingstijden: retour registreren is mogelijk.' : 'Buiten openingstijden: retour registreren is nu niet mogelijk.'}
+                </div>
+
                 <div className="max-w-xl mx-auto space-y-3 mb-6 mt-5">
                     {reservationList.filter(res => res.status === "uitgegeven").length > 0 ? (
                         reservationList
@@ -119,6 +163,11 @@ export default function RegisterReturn({ reservations }) {
                                 onChange={(e) => setReturnDate(e.target.value)}
                                 className="w-full border rounded px-3 py-2"
                             />
+                            {isReturnDateWithinOpeningHours !== null && (
+                                <p className={`mt-2 text-sm ${isReturnDateWithinOpeningHours ? 'text-green-700' : 'text-red-700'}`}>
+                                    {isReturnDateWithinOpeningHours ? 'Retourtijd valt binnen openingstijden.' : 'Retourtijd valt buiten openingstijden.'}
+                                </p>
+                            )}
                         </div>
 
                         {/* Status */}
