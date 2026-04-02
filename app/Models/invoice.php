@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Invoice extends Model
 {
     use HasFactory;
+    public function reservation() 
+    {
+        return $this->belongsTo(Reservation::class);
+    }
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);

@@ -7,6 +7,8 @@ use App\Http\Controllers\EmployeeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\FacturenController;
+
 use App\Http\Controllers\ReserveringController;
 use Laravel\Fortify\Features;
 
@@ -29,6 +31,8 @@ Route::prefix('admin')->group(function(){
     Route::put('users',[UserController::class,'update'])->name('users.update');
     Route::get('/stats',[StatController::class,'index'])->name('stats');
 });
+    
+Route::get('/klant/facturen', [FacturenController::class, 'index'])->name('klant.facturen');
 
 Route::get('/klant/producten',[ReserveringController::class,'index'])->name('reservering.index'); 
 Route::get('/klant/product/{id}', [ReserveringController::class, 'show'])->name('reservering.show');

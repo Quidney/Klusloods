@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->index()->constrained('users');
+            $table->foreignId('reservation_id')->index()->constrained('reservations');
             $table->string('filepath',255);
             $table->enum('paymentstatus',['betaald','deels betaald','openstaand']);
             $table->timestamps();
