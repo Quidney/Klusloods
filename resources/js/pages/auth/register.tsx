@@ -25,22 +25,34 @@ export default function Register() {
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
-                                <Input
-                                    id="name"
-                                    type="text"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="name"
-                                    name="name"
-                                    placeholder="Full name"
-                                />
-                                <InputError
-                                    message={errors.name}
-                                    className="mt-2"
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="firstname">First Name</Label>
+                                    <Input
+                                        id="firstname"
+                                        type="text"
+                                        required
+                                        autoFocus
+                                        tabIndex={1}
+                                        autoComplete="given-name"
+                                        name="firstname"
+                                        placeholder="First name"
+                                    />
+                                    <InputError message={errors.firstname} className="mt-2" />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="lastname">Last Name</Label>
+                                    <Input
+                                        id="lastname"
+                                        type="text"
+                                        required
+                                        tabIndex={2}
+                                        autoComplete="family-name"
+                                        name="lastname"
+                                        placeholder="Last name"
+                                    />
+                                    <InputError message={errors.lastname} className="mt-2" />
+                                </div>
                             </div>
 
                             <div className="grid gap-2">
@@ -49,12 +61,69 @@ export default function Register() {
                                     id="email"
                                     type="email"
                                     required
-                                    tabIndex={2}
+                                    tabIndex={3}
                                     autoComplete="email"
                                     name="email"
                                     placeholder="email@example.com"
                                 />
                                 <InputError message={errors.email} />
+                            </div>
+
+                            <div className="grid grid-cols-[2fr_1fr] gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="street">Street</Label>
+                                    <Input
+                                        id="street"
+                                        type="text"
+                                        required
+                                        tabIndex={4}
+                                        autoComplete="street-address"
+                                        name="street"
+                                        placeholder="Street"
+                                    />
+                                    <InputError message={errors.street} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="housenumber">House No</Label>
+                                    <Input
+                                        id="housenumber"
+                                        type="text"
+                                        required
+                                        tabIndex={5}
+                                        name="housenumber"
+                                        placeholder="12A"
+                                    />
+                                    <InputError message={errors.housenumber} />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="place_of_residence">City</Label>
+                                    <Input
+                                        id="place_of_residence"
+                                        type="text"
+                                        required
+                                        tabIndex={6}
+                                        autoComplete="address-level2"
+                                        name="place_of_residence"
+                                        placeholder="City"
+                                    />
+                                    <InputError message={errors.place_of_residence} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="postalcode">Post Code</Label>
+                                    <Input
+                                        id="postalcode"
+                                        type="text"
+                                        required
+                                        tabIndex={7}
+                                        autoComplete="postal-code"
+                                        name="postalcode"
+                                        placeholder="1234 AB"
+                                    />
+                                    <InputError message={errors.postalcode} />
+                                </div>
                             </div>
 
                             <div className="grid gap-2">
@@ -63,7 +132,7 @@ export default function Register() {
                                     id="password"
                                     type="password"
                                     required
-                                    tabIndex={3}
+                                    tabIndex={8}
                                     autoComplete="new-password"
                                     name="password"
                                     placeholder="Password"
@@ -79,7 +148,7 @@ export default function Register() {
                                     id="password_confirmation"
                                     type="password"
                                     required
-                                    tabIndex={4}
+                                    tabIndex={9}
                                     autoComplete="new-password"
                                     name="password_confirmation"
                                     placeholder="Confirm password"
@@ -92,7 +161,7 @@ export default function Register() {
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={5}
+                                tabIndex={10}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
