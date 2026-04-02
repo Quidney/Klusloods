@@ -14,6 +14,13 @@ type WelcomeUser = {
   role?: 'klant' | 'medewerker' | 'beheerder' | string;
 };
 
+type OpeningHour = {
+  day: string;
+  status: 'open' | 'gesloten' | string;
+  startime?: string | null;
+  endtime?: string | null;
+};
+
 const getRoleFirstPage = (role?: WelcomeUser['role']) => {
   if (role === 'klant') return '/klant/producten';
   if (role === 'medewerker') return '/medewerker/uitgifte-registreren';
@@ -346,8 +353,64 @@ const Footer = () => {
   );
 };
 
+const OpeningHoursSection = ({ openingHours }: { openingHours: OpeningHour[] }) => {
+  const dayLabels: Record<string, string> = {
+    maandag: 'Maandag',
+    dinsdag: 'Dinsdag',
+    woensdag: 'Woensdag',
+    donderdag: 'Donderdag',
+    vrijdag: 'Vrijdag',
+    zaterdag: 'Zaterdag',
+    zondag: 'Zondag',
+  };
+
+  const formatTime = (value?: string | null) => (value ? value.slice(0, 5) : '--:--');
+
+  return (
+    <div className="py-16 bg-slate-50 border-t border-slate-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-slate-900">Openingstijden</h2>
+          <p className="text-slate-600 mt-2">Afhalen en retourneren is alleen mogelijk binnen deze tijden.</p>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="bg-slate-900 text-sm uppercase tracking-wider text-white">
+                <th className="px-6 py-4">Dag</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Tijd</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {openingHours.map((hour) => {
+                const isOpen = hour.status === 'open';
+
+                return (
+                  <tr key={hour.day}>
+                    <td className="px-6 py-4 font-semibold text-slate-800">{dayLabels[hour.day] ?? hour.day}</td>
+                    <td className="px-6 py-4">
+                      <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${isOpen ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                        {isOpen ? 'Open' : 'Gesloten'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-slate-700">
+                      {isOpen ? `${formatTime(hour.startime)} - ${formatTime(hour.endtime)}` : '-'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- MAIN APP COMPONENT ---
-export default function App({ categories, featuredItems, auth }: { categories: any[], featuredItems: any[], auth?: { user?: WelcomeUser | null } }) {
+export default function App({ categories, featuredItems, openingHours, auth }: { categories: any[], featuredItems: any[], openingHours: OpeningHour[], auth?: { user?: WelcomeUser | null } }) {
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-orange-500 selection:text-white">
       <Navbar user={auth?.user} />
@@ -355,6 +418,7 @@ export default function App({ categories, featuredItems, auth }: { categories: a
         <Hero />
         <CategorySection categories={categories} />
         <FeaturedProducts featuredItems={featuredItems} />
+        <OpeningHoursSection openingHours={openingHours} />
       </main>
       <Footer />
     </div>

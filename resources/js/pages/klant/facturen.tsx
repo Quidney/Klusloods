@@ -73,14 +73,6 @@ export default function Facturen({ facturen = [] }: Props) {
         <div className="min-h-screen bg-[#FDFDFD] font-sans text-slate-900 flex flex-col">
             <Head title="Facturen bekijken" />
 
-            {/* Navbar */}
-            <nav className="bg-white border-b border-gray-100 py-4 px-8 flex items-center shadow-sm">
-                <div className="flex items-center gap-2 font-bold text-xl text-slate-800">
-                    <span className="text-orange-500">🛠️</span>
-                    <span>Klusloods</span>
-                </div>
-            </nav>
-
             <RoleToolbar role="klant" />
 
             <main className="flex-grow max-w-5xl mx-auto py-10 px-6 w-full">

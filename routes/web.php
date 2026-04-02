@@ -8,11 +8,14 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\FacturenController;
+use App\Http\Controllers\OpeninghourController;
 
 use App\Http\Controllers\ReserveringController;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
+    $dayOrder = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
         'categories' => \App\Models\Category::withCount('tool')->get()->map(function ($category) {
@@ -34,6 +37,18 @@ Route::get('/', function () {
                 'available' => true,
             ];
         }),
+        'openingHours' => \App\Models\Openinghour::query()
+            ->get()
+            ->sortBy(fn ($hour) => array_search($hour->day, $dayOrder, true))
+            ->values()
+            ->map(function ($hour) {
+                return [
+                    'day' => $hour->day,
+                    'status' => $hour->status,
+                    'startime' => $hour->startime,
+                    'endtime' => $hour->endtime,
+                ];
+            }),
     ]);
 })->name('home');
 
@@ -52,6 +67,8 @@ Route::middleware(['auth', 'role:beheerder'])->prefix('admin')->group(function()
     Route::put('users',[UserController::class,'update'])->name('users.update');
     Route::get('/stats',[StatController::class,'index'])->name('stats');
     Route::get('/facturen',[FacturenController::class,'adminIndex'])->name('admin.facturen');
+    Route::get('/openingstijden',[OpeninghourController::class,'index'])->name('admin.openinghours');
+    Route::put('/openingstijden',[OpeninghourController::class,'update'])->name('admin.openinghours.update');
 });
 
 Route::middleware(['auth', 'role:klant'])->group(function () {

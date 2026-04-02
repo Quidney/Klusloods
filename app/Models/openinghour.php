@@ -8,5 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Openinghour extends Model
 {
     use HasFactory;
-    //
+
+    protected $fillable = [
+        'day',
+        'startime',
+        'endtime',
+        'status',
+    ];
 }

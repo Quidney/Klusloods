@@ -1,8 +1,6 @@
 import { useForm, router } from '@inertiajs/react';
 import {
     Wrench,
-    Menu,
-    User,
     Search,
     MoreHorizontal,
     Save,
@@ -44,30 +42,6 @@ const Users = ({ users }) => {
 
     return (
         <div className="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-900">
-            <nav className="sticky top-0 z-50 bg-slate-900 text-white">
-                <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
-                    <div className="flex items-center gap-2">
-                        <div className="rounded-lg bg-orange-500 p-2">
-                            <Wrench className="h-6 w-6 text-white" />
-                        </div>
-                        <span className="text-2xl font-bold tracking-tight">
-                            Build<span className="text-orange-500">Rent</span>
-                        </span>
-                        <span className="ml-4 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-xs font-bold text-orange-400">
-                            ADMIN
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <button className="transition-colors hover:text-orange-500">
-                            <User className="h-5 w-5" />
-                        </button>
-                        <button className="md:hidden">
-                            <Menu className="h-6 w-6" />
-                        </button>
-                    </div>
-                </div>
-            </nav>
-
             <RoleToolbar role="beheerder" />
 
             <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10">
@@ -78,7 +52,7 @@ const Users = ({ users }) => {
                         </h1>
                         <p className="mt-1 text-slate-500">
                             Beheer accounts, rollen en toegangsrechten van
-                            BuildRent gebruikers.
+                            Klusloods-gebruikers.
                         </p>
                     </div>
 
@@ -305,7 +279,7 @@ const Users = ({ users }) => {
 
                     <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 text-sm text-slate-500 md:flex-row">
                         <p>
-                            © {new Date().getFullYear()} BuildRent Services. All
+                            © {new Date().getFullYear()} Klusloods. Alle
                             rights reserved.
                         </p>
                         <div className="flex gap-6">
