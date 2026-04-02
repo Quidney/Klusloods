@@ -4,6 +4,7 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import formatCurrency from '/resources/js/hooks/formatCurrency.tsx';
+import RoleToolbar from '@/components/role-toolbar';
 
 
 export default function ExtensionRequest({ reservations }) {
@@ -101,6 +102,7 @@ export default function ExtensionRequest({ reservations }) {
                     </div>
                 </div>
             </nav>
+            <RoleToolbar role="medewerker" />
             <main className="flex-grow bg-slate-50 py-12">
                 <div className="mx-auto max-w-3xl px-4">
                     <div className="mb-8">

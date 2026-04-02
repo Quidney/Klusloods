@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Transition } from '@headlessui/react';
 import { useState, useEffect, useRef } from 'react';
+import RoleToolbar from '@/components/role-toolbar';
 
 const USERROLE = ['klant', 'medewerker', 'beheerder'];
 
@@ -66,6 +67,8 @@ const Users = ({ users }) => {
                     </div>
                 </div>
             </nav>
+
+            <RoleToolbar role="beheerder" />
 
             <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10">
                 <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">

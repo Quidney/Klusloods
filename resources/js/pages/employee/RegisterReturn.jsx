@@ -3,6 +3,7 @@ import { Search, CheckCircle, AlertTriangle, Wrench, User, Menu } from "lucide-r
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import RoleToolbar from '@/components/role-toolbar';
 
 export default function RegisterReturn({ reservations }) {
     const [reservationList, setReservationList] = useState(reservations);
@@ -67,6 +68,8 @@ export default function RegisterReturn({ reservations }) {
                     </div>
                 </div>
             </nav>
+
+            <RoleToolbar role="medewerker" />
 
             <main className="flex-grow">
                 <div className="max-w-xl mx-auto space-y-3 mb-6 mt-5">

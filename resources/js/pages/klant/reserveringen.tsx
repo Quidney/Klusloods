@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import RoleToolbar from '@/components/role-toolbar';
 
 interface Reservering {
     id: number;
@@ -100,6 +101,8 @@ export default function Reserveringen({ reserveringen }: { reserveringen: Reserv
                     <span>Klusloods</span>
                 </div>
             </nav>
+
+            <RoleToolbar role="klant" />
 
             <main className="flex-grow max-w-5xl mx-auto py-10 px-6 w-full">
                 <h1 className="text-2xl font-bold text-slate-800 tracking-tight mb-6">Mijn Reserveringen</h1>

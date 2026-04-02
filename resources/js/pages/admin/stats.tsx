@@ -13,6 +13,7 @@ import { Chart as ChartJS,   CategoryScale,
   Legend, } from "chart.js";
 import { Chart } from "react-chartjs-2";
 import { router } from '@inertiajs/react';
+import RoleToolbar from '@/components/role-toolbar';
 
 const MONTHS={
   january: "januari",
@@ -158,6 +159,8 @@ const Stats = ({rents,maintenance,invoices,topProducts,years,months}) => {
                     </div>
                 </div>
             </nav>
+
+            <RoleToolbar role="beheerder" />
 
             <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10">
                 <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">

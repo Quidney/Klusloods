@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import RoleToolbar from '@/components/role-toolbar';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -332,6 +333,8 @@ export default function Reservering({ tool, existingReservations = [], editReser
                     </button>
                 </div>
             </nav>
+
+            <RoleToolbar role="klant" />
 
             <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-10">
                 {editReservation && (
