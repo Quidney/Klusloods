@@ -47,11 +47,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 });
 Route::prefix('medewerker')->group(function(){
-    Route::get('/uitgifte-registreren',[EmployeeController::class, 'indexIssue']);
-    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'updateIssue']);
+    Route::get('/uitgifte-registreren',[EmployeeController::class, 'index']);
+    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'update']);
+    Route::get('/verlenging-aanvragen',[EmployeeController::class, 'indexExtended']);
+    Route::patch('/reservations/{reservation}/extend',[EmployeeController::class, 'extendReservation']);
     Route::get('/retour-registreren',[EmployeeController::class, 'indexReturn']);
     Route::patch('/retour/{reservation}',[EmployeeController::class, 'updateReturn']);
-
 });
 
 require __DIR__.'/settings.php';

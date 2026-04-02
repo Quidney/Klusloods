@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Price extends Model
 {
     use HasFactory;
+    protected $fillable = [
+    'tool_id',
+    'dayprice',
+    'weekprice',
+    'deposit'
+    ];
     public function tool()
     {
         return $this->belongsTo(Tool::class);

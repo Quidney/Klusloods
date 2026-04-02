@@ -129,7 +129,6 @@ export default function RegisterIssue({ reservations }) {
 
           <h1 className="text-2xl font-bold mb-6 p-2">Reservering Uitgeven</h1>
 
-          {/* SEARCH */}
           <div className="flex gap-2 mb-6">
             <input
               type="text"
@@ -146,7 +145,6 @@ export default function RegisterIssue({ reservations }) {
             </button>
           </div>
 
-          {/* RESULTS */}
           <div className="space-y-3 mb-6">
             {hasSearched && results.length === 0 ? (
               <p className="text-slate-500">reservering niet gevonden</p>
@@ -176,7 +174,6 @@ export default function RegisterIssue({ reservations }) {
             )}
           </div>
 
-          {/* INVENTORY SELECT */}
           {selectedReservation && results.length > 0 && (
             <>
               <h2 className="font-semibold mb-2">Selecteer exemplaar</h2>
@@ -198,7 +195,6 @@ export default function RegisterIssue({ reservations }) {
                 )}
               </div>
 
-              {/* DATES */}
               <div className="mb-6 p-4 bg-slate-100 rounded-lg">
                 <h3 className="font-semibold mb-2">Reserveringsperiode</h3>
 
@@ -213,7 +209,6 @@ export default function RegisterIssue({ reservations }) {
                 </p>
               </div>
 
-              {/* OPTIONAL FIELDS */}
               <div className="mb-4">
                 <label className="block text-sm mb-1">
                   Startconditie (optioneel)
@@ -236,7 +231,6 @@ export default function RegisterIssue({ reservations }) {
                 />
               </div>
 
-              {/* ACTION */}
               <button
                 onClick={handleIssue}
                 disabled={selectedReservation?.status === 'uitgegegeven'}
@@ -253,7 +247,6 @@ export default function RegisterIssue({ reservations }) {
           )}
 
 
-          {/* MESSAGE */}
           {message && (
             <div className="mt-6 flex items-center gap-2 text-sm">
               {message.includes("Succes") ? (

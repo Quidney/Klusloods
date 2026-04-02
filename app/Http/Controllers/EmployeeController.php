@@ -7,6 +7,7 @@ use App\Models\Barcode;
 use App\Models\Retour;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class EmployeeController extends Controller
 {
@@ -22,6 +23,13 @@ class EmployeeController extends Controller
         ]);
     }
 
+    public function indexExtended()
+    {
+        $reservations = Reservation::with(['user', 'barcode.tool.price'])->where('status', 'uitgegeven')->get();
+        return Inertia::render('employee/ExtensionRequest', [
+            'reservations' => $reservations
+        ]);
+    }
     public function indexReturn()
     {
         $reservations = Reservation::with(['user', 'barcode.tool'])->where('status', 'uitgegeven')->get();
@@ -123,5 +131,38 @@ class EmployeeController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function extendReservation(Request $request, Reservation $reservation)
+    {
+        $request->validate([
+            'new_returntime' => 'required|date|after:' . $reservation->returntime,
+        ]);
+
+        $currentEnd = $reservation->returntime;
+        $newEnd = $request->new_returntime;
+
+        $overlap = Reservation::where('barcode_id', $reservation->barcode_id)
+            ->where('status', '!=', 'afgerond')
+            ->where('id', '!=', $reservation->id)
+            ->where(function ($q) use ($currentEnd, $newEnd) {
+                $q->where('pickuptime', '<', $newEnd)
+                    ->where('returntime', '>', $currentEnd);
+            })
+            ->exists();
+
+        if ($overlap) {
+            return response()->json(['message' => 'Verlengen niet mogelijk: conflict met andere reservering'], 422);
+        }
+
+        $reservation->update([
+            'returntime' => $request->new_returntime
+        ]);
+
+
+        $reservation->load(['user', 'barcode.tool.price']);
+
+        return response()->json([
+            'message' => 'Reservering verlengd', 'reservation' => $reservation]);
     }
 }
