@@ -61,16 +61,19 @@ Route::post('/klant/reserveren', [ReserveringController::class, 'store']);
 
 Route::get('/klant/reserveringen', [ReserveringController::class, 'reserveringen'])->name('reservering.reserveringen');
 Route::patch('/reserveringen/{reservation}/cancel', [ReserveringController::class, 'cancel'])->name('reserveringen.cancel');
+Route::get('/klant/reserveringen/{id}', [ReserveringController::class, 'show'])->name('reservering.show_detail');
+Route::patch('/klant/reserveringen/{reservation}', [ReserveringController::class, 'update'])->name('reservering.update');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 });
 Route::prefix('medewerker')->group(function(){
-    Route::get('/uitgifte-registreren',[EmployeeController::class, 'indexIssue']);
-    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'updateIssue']);
+    Route::get('/uitgifte-registreren',[EmployeeController::class, 'index']);
+    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'update']);
+    Route::get('/verlenging-aanvragen',[EmployeeController::class, 'indexExtended']);
+    Route::patch('/reservations/{reservation}/extend',[EmployeeController::class, 'extendReservation']);
     Route::get('/retour-registreren',[EmployeeController::class, 'indexReturn']);
     Route::patch('/retour/{reservation}',[EmployeeController::class, 'updateReturn']);
-
 });
 
 // Route::get('/', function () { return Inertia::render('Welcome'); });

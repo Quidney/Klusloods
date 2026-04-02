@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+// --- Interfaces ---
 interface Barcode {
     id: number;
     status: string;
@@ -43,8 +44,10 @@ interface Tool {
 interface Props {
     tool: Tool;
     existingReservations: Reservation[];
+    editReservation?: { id: number; pickup_date: string; return_date: string } | null;
 }
 
+// --- Helper Components ---
 function LabelValue({ label, value, valueClassName = "text-lg text-gray-950 font-bold" }: { label: string, value: string | number, valueClassName?: string }) {
     return (
         <div className="flex flex-col gap-0.5">
@@ -54,6 +57,7 @@ function LabelValue({ label, value, valueClassName = "text-lg text-gray-950 font
     );
 }
 
+// --- Calendar Component ---
 interface CalendarProps {
     pickupDate: string;
     returnDate: string;
@@ -76,7 +80,6 @@ function Calendar({
 
     const today = new Date();
     today.setHours(0,0,0,0);
-
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
@@ -93,49 +96,35 @@ function Calendar({
     ];
 
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
     let firstDay = new Date(year, month, 1).getDay();
-    firstDay = firstDay === 0 ? 6 : firstDay - 1;
+    firstDay = firstDay === 0 ? 6 : firstDay - 1; // Maandag als eerste dag
 
-    const prevMonth = () => {
-        setCurrentDate(new Date(year, month - 1, 1));
-    };
-
-    const nextMonth = () => {
-        setCurrentDate(new Date(year, month + 1, 1));
-    };
+    const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+    const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
     const formatDate = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
     };
 
     const getAvailableForRange = (startStr: string, endStr: string) => {
         if (totalStock === 0) return 0;
-        
         const busyBarcodes = new Set();
-
         existingReservations.forEach(res => {
-            const resStart = res.pickup_date;
-            const resEnd = res.return_date;
-
-            if (resStart <= endStr && resEnd >= startStr) {
+            if (res.pickup_date <= endStr && res.return_date >= startStr) {
                 busyBarcodes.add(res.barcode_id);
             }
         });
-
-        const availableCount = totalStock - busyBarcodes.size;
-        return availableCount < 0 ? 0 : availableCount;
+        const count = totalStock - busyBarcodes.size;
+        return count < 0 ? 0 : count;
     };
 
     const handleClick = (formatted: string, isSelectable: boolean) => {
         if (!isSelectable) return;
-
         if (activeField === 'pickup' || (!pickupDate && !activeField)) {
             setPickupDate(formatted);
-
             if (returnDate && (new Date(returnDate) < new Date(formatted) || getAvailableForRange(formatted, returnDate) <= 0)) {
                 setReturnDate('');
             }
@@ -146,7 +135,6 @@ function Calendar({
     };
 
     const days = [];
-
     for (let i = 0; i < firstDay; i++) {
         days.push(<div key={`empty-${i}`} />);
     }
@@ -157,13 +145,9 @@ function Calendar({
     for (let d = 1; d <= daysInMonth; d++) {
         const dateObj = new Date(year, month, d);
         const formatted = formatDate(dateObj);
-
         const isPast = dateObj < tomorrow;
-        
         const isTooFar = dateObj > maxReservationDate; 
-        
         const dailyAvailable = getAvailableForRange(formatted, formatted);
-        
         const isPickup = pickupDate === formatted;
         const isReturn = returnDate === formatted;
 
@@ -193,7 +177,6 @@ function Calendar({
                 `}
             >
                 <span>{d}</span>
-                {/* ✅ Toon alleen de voorraad als de dag binnen de boekbare range valt */}
                 {!isPast && !isTooFar && (
                     <span className="text-[9px] font-normal leading-tight opacity-80">
                         {dailyAvailable} vrij
@@ -206,42 +189,35 @@ function Calendar({
     return (
         <div className="flex flex-col gap-5 p-6 bg-white">
             <div className="flex items-center justify-between">
-                <button onClick={prevMonth} className="text-gray-400 hover:text-orange-500 font-bold p-2">
-                    ←
-                </button>
-
-                <span className="font-bold text-gray-900 text-xl">
-                    {monthNames[month]} {year}
-                </span>
-
-                <button onClick={nextMonth} className="text-gray-400 hover:text-orange-500 font-bold p-2">
-                    →
-                </button>
+                <button onClick={prevMonth} className="text-gray-400 hover:text-orange-500 font-bold p-2">←</button>
+                <span className="font-bold text-gray-900 text-xl">{monthNames[month]} {year}</span>
+                <button onClick={nextMonth} className="text-gray-400 hover:text-orange-500 font-bold p-2">→</button>
             </div>
-
             <div className="grid grid-cols-7 gap-1 text-center text-sm font-semibold text-gray-400">
-                {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map(d => (
-                    <div key={d}>{d}</div>
-                ))}
+                {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map(d => <div key={d}>{d}</div>)}
             </div>
-
-            <div className="grid grid-cols-7 gap-1 text-center">
-                {days}
-            </div>
+            <div className="grid grid-cols-7 gap-1 text-center">{days}</div>
         </div>
     );
 }
 
-export default function Reservering({ tool, existingReservations = [] }: Props) {
-    const [pickupDate, setPickupDate] = useState<string>('');
-    const [returnDate, setReturnDate] = useState<string>('');
-    const [activeField, setActiveField] = useState<'pickup' | 'return' | null>('pickup');
+// --- Main Component ---
+export default function Reservering({ tool, existingReservations = [], editReservation = null }: Props) {
+    const [pickupDate, setPickupDate] = useState<string>(editReservation?.pickup_date || '');
+    const [returnDate, setReturnDate] = useState<string>(editReservation?.return_date || '');
+    const [activeField, setActiveField] = useState<'pickup' | 'return' | null>(editReservation ? 'return' : 'pickup');
+
+    // Filter huidige reservering uit lijst bij wijzigen
+    const filteredReservations = useMemo(() => {
+        if (!editReservation) return existingReservations;
+        return existingReservations.filter(res => res.id !== editReservation.id);
+    }, [existingReservations, editReservation]);
 
     const formatDate = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
     };
 
     const todayStr = formatDate(new Date());
@@ -259,80 +235,58 @@ export default function Reservering({ tool, existingReservations = [] }: Props) 
 
     const isAvailableInRange = useMemo(() => {
         if (!pickupDate || !returnDate || totalStock === 0) return true;
-
-        const overlappingBarcodes = new Set(
-            existingReservations
+        const overlappingCount = new Set(
+            filteredReservations
                 .filter(r => r.pickup_date <= returnDate && r.return_date >= pickupDate)
                 .map(r => r.barcode_id)
-        );
-
-        return (totalStock - overlappingBarcodes.size) > 0;
-    }, [pickupDate, returnDate, existingReservations, totalStock]);
+        ).size;
+        return (totalStock - overlappingCount) > 0;
+    }, [pickupDate, returnDate, filteredReservations, totalStock]);
 
     const stockForSelectedRange = useMemo(() => {
         if (!pickupDate || !returnDate || totalStock === 0) return 0;
-
         const start = new Date(pickupDate);
         const end = new Date(returnDate);
         let minAvailable = totalStock;
 
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
             const currentDayStr = formatDate(d);
-            
-            const busyOnThisDay = new Set(
-                existingReservations
+            const busyCount = new Set(
+                filteredReservations
                     .filter(r => r.pickup_date <= currentDayStr && r.return_date >= currentDayStr)
                     .map(r => r.barcode_id)
             ).size;
-
-            const availableOnThisDay = totalStock - busyOnThisDay;
-            
-            if (availableOnThisDay < minAvailable) {
-                minAvailable = availableOnThisDay;
-            }
+            const available = totalStock - busyCount;
+            if (available < minAvailable) minAvailable = available;
         }
-
         return minAvailable < 0 ? 0 : minAvailable;
-    }, [pickupDate, returnDate, existingReservations, totalStock]);
+    }, [pickupDate, returnDate, filteredReservations, totalStock]);
 
     const currentlyAvailable = totalStock - new Set(
-        existingReservations
+        filteredReservations
             .filter(r => {
-                const todayStr = formatDate(new Date());
-                return r.pickup_date <= todayStr && r.return_date >= todayStr;
+                const now = formatDate(new Date());
+                return r.pickup_date <= now && r.return_date >= now;
             })
             .map(r => r.barcode_id)
     ).size;
 
     const priceDetails = useMemo(() => {
         if (!pickupDate || !returnDate) return { days: 0, weeks: 0, extraDays: 0, total: 0 };
-
         const start = new Date(pickupDate);
         const end = new Date(returnDate);
-        
-        const diffTime = end.getTime() - start.getTime();
-        const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
         if (totalDays <= 0) return { days: 0, weeks: 0, extraDays: 0, total: 0 };
 
-        const dayPrice = typeof tool?.detailed_price?.day === 'string' 
-            ? parseFloat(tool.detailed_price.day) 
-            : (Number(tool?.detailed_price?.day) || 0);
-            
-        const weekPrice = typeof tool?.detailed_price?.week === 'string' 
-            ? parseFloat(tool.detailed_price.week) 
-            : (Number(tool?.detailed_price?.week) || (dayPrice * 7));
+        const dayPrice = Number(tool?.detailed_price?.day) || Number(tool?.price?.dayprice) || 0;
+        const weekPrice = Number(tool?.detailed_price?.week) || (dayPrice * 7);
 
         const weeks = Math.floor(totalDays / 7);
         const extraDays = totalDays % 7;
         const totalCost = (weeks * weekPrice) + (extraDays * dayPrice);
 
-        return {
-            days: totalDays,
-            weeks: weeks,
-            extraDays: extraDays,
-            total: totalCost
-        };
+        return { days: totalDays, weeks, extraDays, total: totalCost };
     }, [pickupDate, returnDate, tool]);
 
     const datesSelected = pickupDate !== '' && returnDate !== '' && priceDetails.days > 0;
@@ -340,40 +294,30 @@ export default function Reservering({ tool, existingReservations = [] }: Props) 
 
     const handleConfirmReservation = () => {
         if (!canReserve) return;
-
-        router.post('/klant/reserveren', {
-            tool_id: tool.id,
-            pickupDate,
-            returnDate,
-        }, {
-            onSuccess: () => {
-                setPickupDate('');
-                setReturnDate('');
-                setActiveField('pickup');
-                toast.success('🎉 Reservering succesvol geplaatst! Veel klusplezier.', {
-                    position: "top-right",
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    theme: "colored",
-                });
-            },
-            onError: (errors) => {
-                toast.error('Oeps! ' + Object.values(errors).join(', '), {
-                    position: "top-right",
-                    theme: "colored",
-                });
-            }
-        });
+        if (editReservation) {
+        router.patch(`/klant/reserveringen/${editReservation.id}`, { 
+            pickupDate, 
+            returnDate 
+        }, 
+        {       onSuccess: () => toast.success('✅ Reservering succesvol gewijzigd!'),
+                onError: (err) => toast.error('Oeps! ' + Object.values(err).join(', '))
+            });
+        } else {
+            router.post('/klant/reserveren', { tool_id: tool.id, pickupDate, returnDate }, {
+                onSuccess: () => {
+                    setPickupDate('');
+                    setReturnDate('');
+                    setActiveField('pickup');
+                    toast.success('🎉 Reservering succesvol geplaatst!');
+                },
+                onError: (err) => toast.error('Oeps! ' + Object.values(err).join(', '))
+            });
+        }
     };
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-            <Head title={`Reserveren - ${tool?.name || 'Product'}`} />
-            
-            {/* Toast Container */}
+            <Head title={`${editReservation ? 'Wijzigen' : 'Reserveren'} - ${tool?.name || 'Product'}`} />
             <ToastContainer />
 
             <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
@@ -382,20 +326,27 @@ export default function Reservering({ tool, existingReservations = [] }: Props) 
                         <span className="text-orange-500 text-3xl">🛠️</span>
                         <span className="text-3xl font-extrabold text-gray-950 tracking-tight">Klusloods</span>
                     </div>
-                    <button 
-                        onClick={() => window.history.back()}
-                        className="text-gray-500 hover:text-orange-500 font-bold flex items-center gap-2 transition"
-                    >
+                    <button onClick={() => window.history.back()} className="text-gray-500 hover:text-orange-500 font-bold flex items-center gap-2 transition">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7 7-7" /></svg>
-                        Terug naar overzicht
+                        Terug
                     </button>
                 </div>
             </nav>
 
             <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-10">
+                {editReservation && (
+                    <div className="mb-6 p-4 bg-blue-600 text-white rounded-2xl shadow-lg flex justify-between items-center">
+                        <div>
+                            <p className="font-black text-lg">Je bent een reservering aan het wijzigen</p>
+                            <p className="text-sm opacity-90">Kies je nieuwe gewenste datums in de kalender.</p>
+                        </div>
+                        <button onClick={() => router.visit('/klant/reserveringen')} className="bg-white text-blue-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-50">
+                            Annuleren
+                        </button>
+                    </div>
+                )}
+
                 <div className="flex flex-col gap-10">
-                    
-                    {/* PRODUCT INFO CARD */}
                     <div className="bg-white border border-gray-100 rounded-3xl shadow-sm p-8 md:p-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div className="aspect-[4/3] bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden flex items-center justify-center p-6">
                             {tool?.images ? (
@@ -404,7 +355,6 @@ export default function Reservering({ tool, existingReservations = [] }: Props) 
                                 <span className="text-gray-400 italic text-lg">Geen afbeelding</span>
                             )}
                         </div>
-
                         <div className="flex flex-col gap-8">
                             <div>
                                 <LabelValue label="Naam:" value={tool?.name || 'Onbekend'} valueClassName="text-3xl text-gray-950 font-black" />
@@ -424,90 +374,70 @@ export default function Reservering({ tool, existingReservations = [] }: Props) 
                         </div>
                     </div>
 
-                    {/* RESERVATIE CARD */}
                     <div className="bg-white border border-gray-100 rounded-3xl shadow-sm p-8 md:p-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
                         <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden shadow-inner">
                             <Calendar 
-                                pickupDate={pickupDate}
-                                returnDate={returnDate}
-                                activeField={activeField}
-                                setPickupDate={setPickupDate}
-                                setReturnDate={setReturnDate}
-                                existingReservations={existingReservations}
-                                totalStock={totalStock}
+                                pickupDate={pickupDate} returnDate={returnDate} activeField={activeField}
+                                setPickupDate={setPickupDate} setReturnDate={setReturnDate}
+                                existingReservations={filteredReservations} totalStock={totalStock}
                             />                        
                         </div>
 
                         <div className="flex flex-col justify-between">
                             <div className="flex flex-col gap-8">
-                                <h3 className="text-2xl font-black text-gray-950">Wanneer heb je het nodig?</h3>
+                                <h3 className="text-2xl font-black text-gray-950">
+                                    {editReservation ? 'Nieuwe periode kiezen' : 'Wanneer heb je het nodig?'}
+                                </h3>
                                 <div className="grid grid-cols-1 gap-6">
                                     <div className="flex flex-col gap-2">
                                         <label className="text-sm font-bold text-gray-600 uppercase">Ophaaldatum</label>
                                         <input 
-                                            type="date" 
-                                            value={pickupDate}
-                                            min={formatDate(new Date(Date.now() + 86400000))}
-                                            max={maxDateStr}
+                                            type="date" value={pickupDate} min={todayStr} max={maxDateStr}
                                             onFocus={() => setActiveField('pickup')}
                                             onChange={(e) => setPickupDate(e.target.value)}
-                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 outline-none transition-all text-black font-medium"
+                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 outline-none text-black font-medium"
                                         />
                                     </div>
                                     <div className="flex flex-col gap-2">
                                         <label className="text-sm font-bold text-gray-600 uppercase">Inleverdatum</label>
                                         <input 
-                                            type="date" 
-                                            value={returnDate}
-                                            min={pickupDate}
-                                            max={maxDateStr}
+                                            type="date" value={returnDate} min={pickupDate || todayStr} max={maxDateStr}
                                             onFocus={() => setActiveField('return')}
                                             onChange={(e) => setReturnDate(e.target.value)}
-                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 outline-none transition-all text-black font-medium"
+                                            className="w-full px-6 py-4 border-2 border-orange-100 rounded-xl focus:border-orange-400 outline-none text-black font-medium"
                                         />
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                    {/* Bolletje kleur op basis van selectie of nu */}
-                                    <div className={`w-3 h-3 rounded-full 
-                                        ${(datesSelected ? stockForSelectedRange : currentlyAvailable) > 0 ? 'bg-green-500' : 'bg-red-500'}`}
-                                    ></div>
-                                    
-                                    <span className="text-gray-700 font-bold">
-                                        {datesSelected ? (
-                                            stockForSelectedRange > 0 
-                                                ? `${stockForSelectedRange} exemplaren beschikbaar voor deze periode`
-                                                : `Geen exemplaren beschikbaar voor deze periode`
-                                        ) : (
-                                            `${currentlyAvailable} exemplaren op dit moment in voorraad`
-                                        )}
+                                    <div className={`w-3 h-3 rounded-full ${(datesSelected ? stockForSelectedRange : currentlyAvailable) > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                    <span className="text-gray-700 font-bold text-sm">
+                                        {datesSelected ? `${stockForSelectedRange} beschikbaar voor deze periode` : `${currentlyAvailable} op voorraad`}
                                     </span>
                                 </div>
                                 {!isAvailableInRange && pickupDate && returnDate && (
-                                    <div className="p-4 bg-red-100 border border-red-200 text-red-600 font-bold rounded-xl text-center">
-                                        Let op: In deze exacte periode is er geen aaneengesloten exemplaar beschikbaar. Verander je data.
+                                    <div className="p-4 bg-red-100 border border-red-200 text-red-600 font-bold rounded-xl text-center text-sm">
+                                        Geen aaneengesloten exemplaar beschikbaar voor deze periode.
                                     </div>
                                 )}
                             </div>
 
                             <div className="mt-10">
                                 {datesSelected && isAvailableInRange && (
-                                    <div className="bg-orange-50 border border-orange-200 p-6 rounded-2xl mb-6 animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="bg-orange-50 border border-orange-200 p-6 rounded-2xl mb-6">
                                         <div className="space-y-2">
                                             <div className="flex justify-between text-sm text-gray-600">
-                                                <span>Totaal aantal dagen:</span>
-                                                <span className="font-bold">{priceDetails.days}</span>
+                                                <span>Totaal dagen:</span> <span className="font-bold">{priceDetails.days}</span>
                                             </div>
                                             <div className="flex flex-col gap-1 py-2 border-y border-orange-100 my-2">
                                                 {priceDetails.weeks > 0 && (
                                                     <div className="flex justify-between text-gray-700 text-sm">
-                                                        <span>{priceDetails.weeks}x Weekprijs ({formatPrice(tool?.detailed_price?.week)})</span>
+                                                        <span>{priceDetails.weeks}x Weekprijs</span>
                                                         <span className="font-semibold">{formatPrice(priceDetails.weeks * (Number(tool?.detailed_price?.week) || 0))}</span>
                                                     </div>
                                                 )}
                                                 {priceDetails.extraDays > 0 && (
                                                     <div className="flex justify-between text-gray-700 text-sm">
-                                                        <span>{priceDetails.extraDays}x Dagprijs ({formatPrice(tool?.detailed_price?.day)})</span>
+                                                        <span>{priceDetails.extraDays}x Dagprijs</span>
                                                         <span className="font-semibold">{formatPrice(priceDetails.extraDays * (Number(tool?.detailed_price?.day) || 0))}</span>
                                                     </div>
                                                 )}
@@ -516,9 +446,6 @@ export default function Reservering({ tool, existingReservations = [] }: Props) 
                                                 <span className="text-gray-900 font-bold text-lg">Totaalprijs:</span>
                                                 <span className="text-3xl font-black text-orange-600">{formatPrice(priceDetails.total)}</span>
                                             </div>
-                                            <p className="text-[11px] text-orange-500 mt-2 italic text-right font-bold uppercase tracking-wide">
-                                                * Exclusief borg van {formatPrice(tool?.detailed_price?.deposit || 50)}
-                                            </p>
                                         </div>
                                     </div>
                                 )}
@@ -528,14 +455,13 @@ export default function Reservering({ tool, existingReservations = [] }: Props) 
                                     className={`w-full py-5 rounded-2xl font-black text-xl shadow-xl transition-all transform active:scale-95
                                         ${canReserve ? 'bg-slate-900 text-white hover:bg-slate-950 cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                                 >
-                                    {totalStock > 0 ? (datesSelected ? (isAvailableInRange ? 'Reservering Bevestigen' : 'Kies andere datums') : 'Kies je datums') : 'Niet op voorraad'}
+                                    {totalStock > 0 ? (datesSelected ? (isAvailableInRange ? (editReservation ? 'Wijziging Opslaan' : 'Reservering Bevestigen') : 'Kies andere datums') : 'Kies je datums') : 'Niet op voorraad'}
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </main>
-
             <footer className="py-10 text-center text-gray-400 text-sm">
                 &copy; {new Date().getFullYear()} Klusloods - Verhuur met een glimlach
             </footer>
