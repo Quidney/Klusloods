@@ -17,6 +17,7 @@ class InvoiceSeeder extends Seeder
         Invoice::create([
         'id' => 1,
         'user_id' => 3, 
+        'reservation_id' => 1,
         'filepath' => '/abc', //TODO
         'paymentstatus' => 'betaald',
         ]);
@@ -24,6 +25,7 @@ class InvoiceSeeder extends Seeder
         Invoice::create([
         'id' => 2,
         'user_id' => 3, 
+        'reservation_id' => 2,
         'filepath' => '/abc', //TODO
         'paymentstatus' => 'openstaand',
         ]);

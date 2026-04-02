@@ -20,7 +20,7 @@ class Reservation extends Model
     ];
     public function retour(): HasOne
     {
-        return $this->hasOne(retour::class);
+        return $this->hasOne(Retour::class);
     }
     public function user()
     {

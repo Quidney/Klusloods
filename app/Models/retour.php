@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Retour extends Model
 {
     use HasFactory;
-    public function reserveration() 
+    public function reservation() 
     {
         return $this->belongsTo(Reservation::class);
     }

@@ -7,6 +7,9 @@ use App\Http\Controllers\EmployeeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\FacturenController;
+
+use App\Http\Controllers\ReserveringController;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
@@ -29,6 +32,14 @@ Route::prefix('admin')->group(function(){
     Route::get('/stats',[StatController::class,'index'])->name('stats');
 });
     
+Route::get('/klant/facturen', [FacturenController::class, 'index'])->name('klant.facturen');
+
+Route::get('/klant/producten',[ReserveringController::class,'index'])->name('reservering.index'); 
+Route::get('/klant/product/{id}', [ReserveringController::class, 'show'])->name('reservering.show');
+Route::post('/klant/reserveren', [ReserveringController::class, 'store']);
+
+Route::get('/klant/reserveringen', [ReserveringController::class, 'reserveringen'])->name('reservering.reserveringen');
+Route::patch('/reserveringen/{reservation}/cancel', [ReserveringController::class, 'cancel'])->name('reserveringen.cancel');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
@@ -38,6 +49,8 @@ Route::prefix('medewerker')->group(function(){
     Route::patch('/reservations/{reservation}',[EmployeeController::class, 'update']);
     Route::get('/verlenging-aanvragen',[EmployeeController::class, 'indexExtended']);
     Route::patch('/reservations/{reservation}/extend',[EmployeeController::class, 'extendReservation']);
+    Route::get('/retour-registreren',[EmployeeController::class, 'indexReturn']);
+    Route::patch('/retour/{reservation}',[EmployeeController::class, 'updateReturn']);
 });
 
 require __DIR__.'/settings.php';

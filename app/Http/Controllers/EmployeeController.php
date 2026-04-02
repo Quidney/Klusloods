@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Reservation;
 use App\Models\Barcode;
+use App\Models\Retour;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -13,7 +14,7 @@ class EmployeeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function indexIssue()
     {
         $reservations = Reservation::with(['user', 'barcode.tool'])->get();
 
@@ -26,6 +27,10 @@ class EmployeeController extends Controller
     {
         $reservations = Reservation::with(['user', 'barcode.tool.price'])->where('status', 'uitgegeven')->get();
         return Inertia::render('employee/ExtensionRequest', [
+    public function indexReturn()
+    {
+        $reservations = Reservation::with(['user', 'barcode.tool'])->where('status', 'uitgegeven')->get();
+        return Inertia::render('employee/RegisterReturn', [
             'reservations' => $reservations
         ]);
     }
@@ -65,7 +70,7 @@ class EmployeeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Reservation $reservation)
+    public function updateIssue(Request $request, Reservation $reservation)
     {
         if ($reservation->status === 'geannuleerd') {
             return response()->json(['message' => 'Reservering geannuleerd'], 400);
@@ -90,6 +95,31 @@ class EmployeeController extends Controller
         }
 
         return response()->json(['message' => 'Succesvol uitgegeven', 'reservation' => $reservation]);
+    }
+
+    public function updateReturn(Request $request, Reservation $reservation)
+    {
+
+        $retour = new Retour();
+        $retour->reservation_id = $reservation->id;
+        $retour->actualreturntime = $request->return_date;
+        $retour->status = $request->status;
+        $retour->notes = $request->description;
+        $retour->cost = $request->damage_cost;
+        $retour->save();
+
+        $reservation->update([
+            'status' => 'afgerond'
+        ]);
+
+        $barcode = $reservation->barcode;
+        if ($barcode) {
+            $barcode->update([
+                'status' => $retour->status === 'in orde' ? 'beschikbaar' : 'onderhoud'
+            ]);
+        }
+
+        return response()->json(['message' => 'Succesvol retour geregistreerd', 'retour' => $retour]);
     }
 
     /**

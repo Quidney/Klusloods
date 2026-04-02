@@ -9,7 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Barcode extends Model
 {
     use HasFactory;
-    
+    protected $fillable = [
+    'tool_id',
+    'barcode',
+    'status',
+    'notes',
+    ];
     protected function casts(): array
     {
         return [
