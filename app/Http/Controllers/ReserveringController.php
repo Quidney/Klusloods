@@ -23,10 +23,15 @@ class ReserveringController extends Controller
 
     public function show($id)
     {
-        $tool = Tool::with(['category', 'barcode.reservation', 'price'])->findOrFail($id);
+        $tool = Tool::with([
+            'category', 
+            'barcode.reservation' => function($query) {
+                $query->whereIn('status', ['gereserveerd', 'uitgegeven']);
+            }, 
+            'price'
+        ])->findOrFail($id);
 
         $tool->stockCount = $tool->barcode->where('status', 'beschikbaar')->count();
-
         $price = $tool->price->sortByDesc('created_at')->first();
 
         $tool->detailed_price = [
@@ -63,13 +68,13 @@ class ReserveringController extends Controller
 
         $start = $request->pickupDate . ' 00:00:00';
         $end = $request->returnDate . ' 23:59:59';
-
         $availableBarcode = Barcode::where('tool_id', $request->tool_id)
             ->whereDoesntHave('reservation', function ($query) use ($start, $end) {
-                $query->where(function ($q) use ($start, $end) {
-                    $q->where('pickuptime', '<=', $end)
-                    ->where('returntime', '>=', $start);
-                });
+                $query->whereIn('status', ['gereserveerd', 'uitgegeven'])
+                      ->where(function ($q) use ($start, $end) {
+                          $q->where('pickuptime', '<=', $end)
+                            ->where('returntime', '>=', $start);
+                      });
             })
             ->first();
 
@@ -84,6 +89,7 @@ class ReserveringController extends Controller
         $reservation->returntime = $end;
         $reservation->status = 'gereserveerd';
         $reservation->save();
+
         if ($request->pickupDate === date('Y-m-d')) {
             $availableBarcode->status = 'verhuurd';
             $availableBarcode->save();
