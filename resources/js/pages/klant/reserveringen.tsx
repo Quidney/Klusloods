@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 
 interface Reservering {
     id: number;
+    tool_id: number;
     productnaam: string;
     periode: string;
     totaalprijs: string;
@@ -21,17 +22,9 @@ export default function Reserveringen({ reserveringen }: { reserveringen: Reserv
     });
 
     const magAnnulerenCheck = (status: string, pickupDateString: string) => {
-
-        if (!pickupDateString || status.toLowerCase() !== 'gereserveerd') {
-            return false;
-        }
-
+        if (!pickupDateString || status.toLowerCase() !== 'gereserveerd') return false;
         const pickupDate = new Date(pickupDateString);
-        
-        if (isNaN(pickupDate.getTime())) {
-            console.error("Ongeldige datum ontvangen:", pickupDateString);
-            return false;
-        }
+        if (isNaN(pickupDate.getTime())) return false;
 
         const morgen = new Date();
         morgen.setDate(morgen.getDate() + 1);
@@ -56,6 +49,12 @@ export default function Reserveringen({ reserveringen }: { reserveringen: Reserv
         setIsModalOpen(true);
     };
 
+    const handleRowClick = (reservering: Reservering) => {
+        if (reservering.status.toLowerCase() === 'gereserveerd') {
+            router.visit(`/klant/product/${reservering.tool_id}?edit=${reservering.id}`);
+        }
+    };
+
     const confirmAnnulering = () => {
         if (!selectedReservering) return;
 
@@ -64,6 +63,9 @@ export default function Reserveringen({ reserveringen }: { reserveringen: Reserv
                 setIsModalOpen(false);
                 setSelectedReservering(null);
             },
+            onError: (errors) => {
+                console.error(errors);
+            }
         });
     };
 
@@ -131,12 +133,19 @@ export default function Reserveringen({ reserveringen }: { reserveringen: Reserv
                                     const kanNogAnnuleren = magAnnulerenCheck(reservering.status, reservering.raw_pickup_date);
 
                                     return (
-                                        <tr key={reservering.id} className="hover:bg-orange-50/30 transition-colors group">
+                                        <tr 
+                                            key={reservering.id} 
+                                            // 2. Geef hier het volledige 'reservering' object door
+                                            onClick={() => handleRowClick(reservering)}
+                                            className="hover:bg-orange-50/30 transition-colors group cursor-pointer"
+                                        >
                                             <td className="py-5 px-6 text-slate-600 font-medium">{reservering.periode}</td>
                                             <td className="py-5 px-6">
                                                 <div className="flex justify-between items-center">
                                                     <div>
-                                                        <div className="font-bold text-slate-800 text-lg group-hover:text-orange-600 transition-colors">{reservering.productnaam}</div>
+                                                        <div className="font-bold text-slate-800 text-lg group-hover:text-orange-600 transition-colors">
+                                                            {reservering.productnaam}
+                                                        </div>
                                                         <div className="flex items-center gap-3 mt-1">
                                                             <span className="text-sm font-bold text-slate-900">{reservering.totaalprijs}</span>
                                                             <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${getStatusStyle(reservering.status)}`}>
@@ -146,8 +155,11 @@ export default function Reserveringen({ reserveringen }: { reserveringen: Reserv
                                                     </div>
                                                     
                                                     {kanNogAnnuleren ? (
-                                                        <button 
-                                                            onClick={() => openCancelModal(reservering)} 
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation(); // Voorkomt dat de rij-klik (naar de edit pagina) afgaat
+                                                                openCancelModal(reservering);
+                                                            }} 
                                                             className="p-2 text-gray-400 hover:text-white hover:bg-red-500 rounded-lg transition-all"
                                                             title="Reservering annuleren"
                                                         >

@@ -12,9 +12,30 @@ use App\Http\Controllers\FacturenController;
 use App\Http\Controllers\ReserveringController;
 use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+Route::get('/', function () {
+    return Inertia::render('welcome', [
+        'canRegister' => Features::enabled(Features::registration()),
+        'categories' => \App\Models\Category::withCount('tool')->get()->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'count' => $category->tool_count . ' items',
+            ];
+        }),
+        'featuredItems' => \App\Models\Tool::with(['category', 'price'])->take(4)->get()->map(function ($tool) {
+            return [
+                'id' => $tool->id,
+                'name' => $tool->name,
+                'category' => $tool->category->name ?? 'Algemeen',
+                'price' => $tool->price->first()->dayprice ?? 0,
+                'rating' => 4.8,
+                'reviews' => rand(10, 200),
+                'image' => $tool->images ?? 'https://images.unsplash.com/photo-1504148455328-c376907d081c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+                'available' => true,
+            ];
+        }),
+    ]);
+})->name('home');
 
 Route::prefix('admin')->group(function(){
     Route::get('/category',[CategorieController::class,'index'])->name('category');
@@ -40,13 +61,17 @@ Route::post('/klant/reserveren', [ReserveringController::class, 'store']);
 
 Route::get('/klant/reserveringen', [ReserveringController::class, 'reserveringen'])->name('reservering.reserveringen');
 Route::patch('/reserveringen/{reservation}/cancel', [ReserveringController::class, 'cancel'])->name('reserveringen.cancel');
+Route::get('/klant/reserveringen/{id}', [ReserveringController::class, 'show'])->name('reservering.show_detail');
+Route::patch('/klant/reserveringen/{reservation}', [ReserveringController::class, 'update'])->name('reservering.update');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 });
 Route::prefix('medewerker')->group(function(){
-    Route::get('/uitgifte-registreren',[EmployeeController::class, 'indexIssue']);
-    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'updateIssue']);
+    Route::get('/uitgifte-registreren',[EmployeeController::class, 'index']);
+    Route::patch('/reservations/{reservation}',[EmployeeController::class, 'update']);
+    Route::get('/verlenging-aanvragen',[EmployeeController::class, 'indexExtended']);
+    Route::patch('/reservations/{reservation}/extend',[EmployeeController::class, 'extendReservation']);
     Route::get('/retour-registreren',[EmployeeController::class, 'indexReturn']);
     Route::patch('/retour/{reservation}',[EmployeeController::class, 'updateReturn']);
     Route::get('/onderhoud-registreren',[EmployeeController::class, 'indexMaintenance']);
@@ -54,5 +79,9 @@ Route::prefix('medewerker')->group(function(){
     Route::patch('/onderhoud/{maintenance}/complete',[EmployeeController::class, 'completeMaintenance']);
 
 });
+
+// Route::get('/', function () { return Inertia::render('Welcome'); });
+
+// Route::get('/', function () { return Inertia::render('Welcome'); });
 
 require __DIR__.'/settings.php';
