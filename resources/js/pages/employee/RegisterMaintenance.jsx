@@ -13,12 +13,7 @@ export default function RegisterMaintenance({ }) {
     const [cost, setCost] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [barcodeFilter, setBarcodeFilter] = useState("");
-
-    // Load barcodes & maintenances on mount
-    useEffect(() => {
-        axios.get("/api/barcodes").then(res => setBarcodes(res.data));
-        axios.get("/api/maintenances").then(res => setMaintenances(res.data));
-    }, []);
+   
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -27,7 +22,7 @@ export default function RegisterMaintenance({ }) {
             return;
         }
         try {
-            const response = await axios.post("/api/maintenances", {
+            const response = await axios.post("/medewerker/onderhoud", {
                 barcode_id: barcodeId,
                 maintenance_date: date,
                 description,

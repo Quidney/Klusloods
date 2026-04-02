@@ -34,7 +34,8 @@ class EmployeeController extends Controller
     public function indexMaintenance()
     {
         $barcodes = Barcode::all();
-        $maintenances = Maintenance::with('barcode')->get();
+
+        $maintenances = Maintenance::with('barcodes')->get();
         return Inertia::render('employee/RegisterMaintenance', [
             'barcodes' => $barcodes,
             'maintenances' => $maintenances,
@@ -56,6 +57,45 @@ class EmployeeController extends Controller
     {
         //
     }
+
+    public function saveMaintenance(Request $request)
+    {
+        $request->validate([
+            'barcode_id' => 'required|exists:barcodes,id',
+            'maintenance_date' => 'required|date',
+            'description' => 'required|string',
+            'cost' => 'nullable|numeric',
+        ]);
+
+        $maintenance = Maintenance::create([
+            'barcode_id' => $request->barcode_id,
+            'date' => $request->maintenance_date,
+            'description' => $request->description,
+            'status' => $request->status,
+            'cost' => $request->cost,
+        ]);
+        $barcode = $maintenance->barcode;
+        $barcode->status = 'onderhoud';
+        $barcode->save();
+
+        return redirect()->back()->with('success', 'Onderhoud aangemaakt');
+    }
+
+    public function completeMaintenance($id)
+{
+    $maintenance = Maintenance::findOrFail($id);
+    $maintenance->status = 'completed';
+    $maintenance->save();
+
+    // Barcode weer beschikbaar maken, tenzij afgeschreven
+    $barcode = $maintenance->barcode;
+    if ($barcode->status !== 'afgeschreven') {
+        $barcode->status = 'beschikbaar';
+        $barcode->save();
+    }
+
+    return redirect()->back()->with('success', 'Onderhoud afgerond');
+}
 
     /**
      * Display the specified resource.
