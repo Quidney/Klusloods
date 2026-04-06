@@ -23,7 +23,7 @@ class Invoice extends Model
         'invoice_date' => 'date',
     ];
 
-    public function reservation() 
+    public function reservation()
     {
         return $this->belongsTo(Reservation::class);
     }
@@ -34,5 +34,25 @@ class Invoice extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getTotalPaidAttribute()
+    {
+        return $this->payments->sum('amount');
+    }
+
+    public function getCalculatedStatusAttribute()
+    {
+        $total = $this->total_amount ?? 0; // moet je zelf nog hebben
+
+        if ($this->total_paid == 0) {
+            return 'openstaand';
+        }
+
+        if ($this->total_paid < $total) {
+            return 'deels betaald';
+        }
+
+        return 'betaald';
     }
 }

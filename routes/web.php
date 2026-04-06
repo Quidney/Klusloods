@@ -100,6 +100,8 @@ Route::middleware(['auth', 'role:medewerker'])->prefix('medewerker')->group(func
     Route::get('/onderhoud-registreren',[EmployeeController::class, 'indexMaintenance'])->name('medewerker.onderhoud-registreren');
     Route::post('/onderhoud', [EmployeeController::class, 'saveMaintenance']);
     Route::patch('/onderhoud/{maintenance}/complete',[EmployeeController::class, 'completeMaintenance']);
+    Route::get('/betaling-registreren',[EmployeeController::class, 'indexPayment'])->name('medewerker.betaling-registreren');
+    Route::post('/betaling', [EmployeeController::class, 'storePayment']);
 
 });
 

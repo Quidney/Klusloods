@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Reservation;
 use App\Models\Barcode;
+use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\Retour;
 use App\Models\Maintenance;
 use App\Services\OpeningHoursService;
@@ -13,9 +15,7 @@ use Carbon\Carbon;
 
 class EmployeeController extends Controller
 {
-    public function __construct(private readonly OpeningHoursService $openingHoursService)
-    {
-    }
+    public function __construct(private readonly OpeningHoursService $openingHoursService) {}
 
     /**
      * Display a listing of the resource.
@@ -26,7 +26,7 @@ class EmployeeController extends Controller
 
         return Inertia::render('employee/RegisterIssue', [
             'reservations' => $reservations,
-            'openingHours' => $this->openingHoursService->allOrdered()->map(fn ($openingHour) => [
+            'openingHours' => $this->openingHoursService->allOrdered()->map(fn($openingHour) => [
                 'day' => $openingHour->day,
                 'startime' => $openingHour->startime,
                 'endtime' => $openingHour->endtime,
@@ -47,7 +47,7 @@ class EmployeeController extends Controller
         $reservations = Reservation::with(['user', 'barcode.tool'])->where('status', 'uitgegeven')->get();
         return Inertia::render('employee/RegisterReturn', [
             'reservations' => $reservations,
-            'openingHours' => $this->openingHoursService->allOrdered()->map(fn ($openingHour) => [
+            'openingHours' => $this->openingHoursService->allOrdered()->map(fn($openingHour) => [
                 'day' => $openingHour->day,
                 'startime' => $openingHour->startime,
                 'endtime' => $openingHour->endtime,
@@ -67,6 +67,15 @@ class EmployeeController extends Controller
         ]);
     }
 
+    public function indexPayment()
+    {
+        $invoices = Invoice::all();
+
+        return Inertia::render('employee/RegisterPayment', [
+            'allInvoices' => $invoices
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -81,6 +90,44 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         //
+    }
+    
+    public function storePayment(Request $request)
+    {
+      $request->validate([
+            'invoice_id' => 'required|exists:invoices,id',
+            'date' => 'required|date',
+            'amount' => 'required|numeric|min:0',
+            'method' => 'required|in:pin,contant,overboeking',
+        ]);
+
+        $payment = Payment::create([
+            'invoice_id' => $request->invoice_id,
+            'date' => $request->date,
+            'amount' => $request->amount,
+            'method' => $request->method,
+        ]);
+
+      
+        $invoice = Invoice::with('payments')->find($request->invoice_id);
+
+        $totalPaid = $invoice->payments->sum('amount');
+
+       
+        if ($totalPaid == 0) {
+            $invoice->paymentstatus = 'openstaand';
+        } elseif ($totalPaid < 100) { 
+            $invoice->paymentstatus = 'deels betaald';
+        } else {
+            $invoice->paymentstatus = 'betaald';
+        }
+
+        $invoice->save();
+
+        return response()->json([
+            'message' => 'Payment stored'
+        ]);
+    
     }
 
     public function saveMaintenance(Request $request)
@@ -107,9 +154,9 @@ class EmployeeController extends Controller
         }
 
         return response()->json([
-        'maintenance' => $maintenance,
-        'message' => 'Onderhoud aangemaakt'
-    ]);
+            'maintenance' => $maintenance,
+            'message' => 'Onderhoud aangemaakt'
+        ]);
     }
 
     public function completeMaintenance($id)
@@ -124,10 +171,10 @@ class EmployeeController extends Controller
             $barcode->save();
         }
 
-         return response()->json([
-        'maintenance' => $maintenance,
-        'message' => 'Onderhoud afgerond'
-    ]);
+        return response()->json([
+            'maintenance' => $maintenance,
+            'message' => 'Onderhoud afgerond'
+        ]);
     }
 
     /**
@@ -257,6 +304,8 @@ class EmployeeController extends Controller
         $reservation->load(['user', 'barcode.tool.price']);
 
         return response()->json([
-            'message' => 'Reservering verlengd', 'reservation' => $reservation]);
+            'message' => 'Reservering verlengd',
+            'reservation' => $reservation
+        ]);
     }
 }
